@@ -2,12 +2,11 @@ import mysql from "mysql2/promise"
 
 console.log("[v0] Database: Configurando conexão com AWS RDS MySQL...")
 
-// Pool de conexões MySQL otimizado para serverless
 const pool = mysql.createPool({
-  host: "master-project-courses.cyd6a20so0aq.us-east-1.rds.amazonaws.com",
-  user: "admin",
-  password: "RPPdK9iRD131",
-  database: "master",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   connectionLimit: 10,
   acquireTimeout: 60000,
   timeout: 60000,

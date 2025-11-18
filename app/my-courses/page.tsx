@@ -25,18 +25,29 @@ interface EnrolledCourse {
 export default function MyCoursesPage() {
   const [courses, setCourses] = useState<EnrolledCourse[]>([])
   const [loading, setLoading] = useState(true)
-  const { user } = useAuth()
+  // <<< MUDANÇA 1: Renomeie 'loading' do useAuth para 'authLoading'
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
+    // <<< MUDANÇA 2: Adicionamos esta verificação
+    // Se a autenticação ainda estiver carregando (authLoading === true),
+    // não faça nada e espere.
+    if (authLoading) {
+      return
+    }
+
+    // Quando authLoading for 'false', o código abaixo continua.
+    // Agora, a verificação do 'user' é segura.
     const fetchEnrolledCourses = async () => {
       // 1. Verificar se o usuário está logado
       if (!user) {
-        // Se não estiver, redireciona para o login
+        // Se não estiver (e a autenticação já terminou), redireciona para o login
         router.push("/auth/login")
         return
       }
 
+      // Se chegou aqui, o usuário existe! Vamos buscar os cursos.
       try {
         // 2. Buscar o ID do usuário pelo email (função que já existe)
         const userResult = await getUserIdByEmail(user.email)
@@ -57,10 +68,12 @@ export default function MyCoursesPage() {
     }
 
     fetchEnrolledCourses()
-  }, [user, router])
+    // <<< MUDANÇA 3: Adicione 'authLoading' na lista de dependências
+  }, [user, router, authLoading])
 
   // Mostrar um loader enquanto busca os dados
-  if (loading) {
+  // <<< MUDANÇA 4: Mostrar o spinner se 'loading' OU 'authLoading' for verdadeiro
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

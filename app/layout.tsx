@@ -25,22 +25,25 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        
+
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-        <link rel="icon" href="/logonave.webp"/>
+        <link rel="icon" href="/logonave.webp" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        
+
         {/* Google Analytics ATUALIZADO */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-96NDN2WK6J"></script>
-        <script id="google-analytics">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-96NDN2WK6J');
-          `}
-        </script>
+        <script
+          id="google-analytics"
+          dangerouslySetInnerHTML={{
+            __html: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-96NDN2WK6J');
+    `,
+          }}
+        />
       </head>
       <body className={`font-sans ${inter.variable} antialiased`}>
         <Suspense fallback={<div>Loading...</div>}>

@@ -136,8 +136,11 @@ export default function HomePage() {
               </ul>
               <div className="flex items-center gap-4"> {/* Agrupa os botões */}
                 <a href="#cta" className="cta-button">Começar Agora</a>
+                <a href="/my-courses" className="login-button">
+                  Meus Cursos
+                </a>
                 <a href="/auth/login" className="login-button">
-                    Login
+                  Login
                 </a>
               </div>
             </div>
