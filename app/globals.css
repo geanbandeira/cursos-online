@@ -285,6 +285,7 @@
 
 .cta-button {
   display: inline-block;
+  text-align: center;
   padding: 14px 36px;
   background: linear-gradient(135deg, #0061ff, #60efff);
   color: #fff;
