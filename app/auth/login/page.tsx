@@ -36,7 +36,7 @@ export default function LoginPage() {
 
         if (userResult.success) {
           setUser(userResult.data)
-          router.push("/") // Redireciona para a página principal após login
+          router.push("/my-courses") // Redireciona para a página principal após login
         } else {
           setError("Erro ao obter dados do usuário")
         }
