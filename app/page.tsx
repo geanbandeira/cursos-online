@@ -135,7 +135,7 @@ export default function HomePage() {
                 <li><a href="https://api.whatsapp.com/send/?phone=5511995702066&text=Quero+saber+mais+sobre+os+seus+cursos+online.&type=phone_number&app_absent=0">Contato</a></li>
               </ul>
               <div className="flex items-center gap-4"> {/* Agrupa os botões */}
-                <a href="#cta" className="cta-button">Começar Agora</a>
+                 {/* <a href="#cta" className="cta-button">Começar Agora</a> */}
                 <a href="/my-courses" className="login-button">
                   Meus Cursos
                 </a>

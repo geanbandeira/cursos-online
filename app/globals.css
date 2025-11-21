@@ -269,14 +269,11 @@
   background: var(--gradient);
   color: white !important;
   border: none;
-  padding: 12px 24px;
-  border-radius: 50px;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
   text-decoration: none;
   display: inline-block;
-  text-align: center;
 }
 .homepage-styles .cta-button:hover {
   transform: translateY(-3px);
@@ -285,21 +282,35 @@
 
 .cta-button {
   display: inline-block;
-  padding: 14px 36px;
+  padding: 12px 36px;
   background: linear-gradient(135deg, #0061ff, #60efff);
   color: #fff;
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: 0.5px;
   border: none;
-  border-radius: 12px;
   cursor: pointer;
   transition: all 0.35s ease;
   box-shadow: 0 8px 20px rgba(0, 97, 255, 0.3);
-  position: relative;
   overflow: hidden;
   isolation: isolate;
+  
+  /* 🔥 Ajustes que corrigem o problema */
+  text-align: center;     /* centraliza o texto */
+  width: 100%;            /* ocupa a largura do container no mobile */
+  max-width: 320px;       /* mantém o botão bonito sem esticar demais */
+  margin: 0 auto;         /* centraliza horizontalmente */
+  border-radius: 8px;     /* opcional: fica mais bonito */
 }
+
+/* Responsivo para telas pequenas */
+@media (max-width: 480px) {
+  .cta-button {
+    padding: 14px 20px;   /* aumenta um pouco para dedo no mobile */
+    font-size: 1.05rem;
+  }
+}
+
 
 .cta-button::before {
   content: "";
