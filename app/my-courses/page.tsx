@@ -7,10 +7,9 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, BookOpen } from "lucide-react"
-import { getUserIdByEmail } from "@/lib/course-actions"
-// Importe a nova função que criamos
-import { getUserEnrolledCourses } from "@/lib/course-actions" 
+import { ArrowLeft, BookOpen, Clock, Calendar, CheckCircle, GraduationCap } from "lucide-react" 
+import { getUserIdByEmail, getUserEnrolledCourses, getUserProgress } from "@/lib/course-actions"
+import { format } from "date-fns" 
 
 // Definimos um tipo para os cursos que vamos receber
 interface EnrolledCourse {
@@ -25,54 +24,160 @@ interface EnrolledCourse {
 export default function MyCoursesPage() {
   const [courses, setCourses] = useState<EnrolledCourse[]>([])
   const [loading, setLoading] = useState(true)
-  // <<< MUDANÇA 1: Renomeie 'loading' do useAuth para 'authLoading'
+  const [currentTime, setCurrentTime] = useState(new Date())
+  const [totalCompletedLessons, setTotalCompletedLessons] = useState(0) // NOVO ESTADO
+  const [totalCourseDuration, setTotalCourseDuration] = useState("0h 0min") // NOVO ESTADO
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
 
+  // --- FUNÇÕES AUXILIARES DE CÁLCULO ---
+  const parseDurationToMinutes = (duration: string): number => {
+    let totalMinutes = 0
+    if (!duration) return 0
+
+    const parts = duration.match(/(\d+)\s*(h|min)/g)
+    if (!parts) return 0
+
+    parts.forEach(part => {
+      const value = parseInt(part.match(/\d+/)?.[0] || '0')
+      if (part.includes('h')) {
+        totalMinutes += value * 60
+      } else if (part.includes('min')) {
+        totalMinutes += value
+      }
+    })
+    return totalMinutes
+  }
+
+  const formatMinutesToHoursAndMinutes = (totalMinutes: number): string => {
+    const hours = Math.floor(totalMinutes / 60)
+    const minutes = totalMinutes % 60
+    return `${hours}h ${minutes}min`
+  }
+  // ------------------------------------
+
+  // Lógica para o relógio em tempo real
   useEffect(() => {
-    // <<< MUDANÇA 2: Adicionamos esta verificação
-    // Se a autenticação ainda estiver carregando (authLoading === true),
-    // não faça nada e espere.
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+  
+  // Função para formatar a data por extenso e calcular saudação
+  const getFormattedDateAndGreeting = () => {
+    const today = new Date();
+    // Usa Intl.DateTimeFormat para formatação localizada (sem precisar importar locale)
+    const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+    });
+    const fullDate = dateFormatter.format(today).replace(/\s/g, ' ').replace(/,$/, ''); 
+
+    const currentHour = parseInt(format(currentTime, "HH"));
+    let greeting = "Olá";
+    if (currentHour >= 6 && currentHour < 12) {
+        greeting = "Bom dia";
+    } else if (currentHour >= 12 && currentHour < 18) {
+        greeting = "Boa tarde";
+    } else {
+        greeting = "Boa noite";
+    }
+
+    return { fullDate: fullDate.charAt(0).toUpperCase() + fullDate.slice(1), greeting };
+  };
+
+  const { fullDate, greeting } = getFormattedDateAndGreeting();
+  const time = format(currentTime, "HH:mm:ss");
+
+  // DEFINIÇÃO DAS ESTATÍSTICAS (AGORA COM VALORES DINÂMICOS)
+  const stats = [
+      { 
+        title: "Cursos Ativos", 
+        value: courses.length, // Valor REAL: Contagem de cursos no estado
+        icon: BookOpen, 
+        color: "text-blue-600", 
+        bgColor: "bg-blue-50" 
+      },
+      { 
+        title: "Aulas Concluídas", 
+        value: totalCompletedLessons, // Valor REAL: Calculado no useEffect
+        icon: CheckCircle, 
+        color: "text-green-600", 
+        bgColor: "bg-green-50" 
+      },
+      { 
+        title: "Total de Horas", 
+        value: totalCourseDuration, // Valor REAL: Calculado no useEffect
+        icon: Clock, 
+        color: "text-orange-600", 
+        bgColor: "bg-orange-50" 
+      },
+      { 
+        title: "Próxima Meta", 
+        value: "Certificação", // Valor estático, mantido conforme sua sugestão
+        icon: GraduationCap, 
+        color: "text-purple-600", 
+        bgColor: "bg-purple-50" 
+      },
+  ];
+
+  useEffect(() => {
     if (authLoading) {
       return
     }
 
-    // Quando authLoading for 'false', o código abaixo continua.
-    // Agora, a verificação do 'user' é segura.
     const fetchEnrolledCourses = async () => {
-      // 1. Verificar se o usuário está logado
       if (!user) {
-        // Se não estiver (e a autenticação já terminou), redireciona para o login
         router.push("/auth/login")
+        setLoading(false)
         return
       }
 
-      // Se chegou aqui, o usuário existe! Vamos buscar os cursos.
       try {
-        // 2. Buscar o ID do usuário pelo email (função que já existe)
         const userResult = await getUserIdByEmail(user.email)
         
         if (userResult.success && userResult.userId) {
-          // 3. Buscar os cursos matriculados (nossa nova função)
-          const coursesResult = await getUserEnrolledCourses(userResult.userId.toString())
+          const userIdString = userResult.userId.toString(); // ID do usuário
+
+          const coursesResult = await getUserEnrolledCourses(userIdString)
           
           if (coursesResult.success) {
-            setCourses(coursesResult.courses as EnrolledCourse[])
+            const fetchedCourses = coursesResult.courses as EnrolledCourse[]
+            setCourses(fetchedCourses)
+
+            // --- CÁLCULO DAS ESTATÍSTICAS REAIS ---
+            let completedCount = 0
+            let totalMinutes = 0
+            
+            await Promise.all(fetchedCourses.map(async (course) => {
+              // 1. Duração total (soma)
+              totalMinutes += parseDurationToMinutes(course.total_duration)
+              
+              // 2. Aulas concluídas (soma, chamando a função para cada curso)
+              const progressResult = await getUserProgress(userIdString, course.id)
+              if (progressResult.success && progressResult.progress) {
+                completedCount += progressResult.progress.completed
+              }
+            }))
+
+            setTotalCompletedLessons(completedCount)
+            setTotalCourseDuration(formatMinutesToHoursAndMinutes(totalMinutes))
+            // ------------------------------------
           }
         }
       } catch (error) {
-        console.error("Erro ao buscar 'Meus Cursos':", error)
+        console.error("Erro ao buscar 'Meus Cursos' ou progresso:", error)
       } finally {
         setLoading(false)
       }
     }
 
     fetchEnrolledCourses()
-    // <<< MUDANÇA 3: Adicione 'authLoading' na lista de dependências
   }, [user, router, authLoading])
 
-  // Mostrar um loader enquanto busca os dados
-  // <<< MUDANÇA 4: Mostrar o spinner se 'loading' OU 'authLoading' for verdadeiro
   if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -110,11 +215,43 @@ export default function MyCoursesPage() {
 
       {/* Conteúdo Principal */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Meus Cursos</h1>
-          <p className="text-lg text-gray-600">
-            Continue de onde parou. Acesse todos os cursos que você está matriculado.
+        {/* SEÇÃO DE HEADER DINÂMICO E DATA/HORA */}
+        <div className="mb-10 p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-0">
+              {greeting}, {user?.name || "Aluno(a)"}!
+            </h1>
+            <div className="text-left sm:text-right flex flex-col items-start sm:items-end space-y-1">
+              <div className="flex items-center text-gray-600 text-sm sm:text-base">
+                <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                <span>{fullDate}</span>
+              </div>
+              <div className="flex items-center text-gray-800 text-lg sm:text-xl font-mono font-semibold">
+                <Clock className="w-4 h-4 mr-2 text-[#00324F]" />
+                <span>{time}</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-lg text-gray-600 mt-2">
+            Acesse seus cursos e continue de onde parou.
           </p>
+        </div>
+
+        {/* CARTÕES DE ESTATÍSTICAS (AGORA COM DADOS REAIS/CALCULADOS) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {stats.map((stat, index) => (
+            <Card key={index} className="flex flex-row items-center p-4 border-0 shadow-md transition-shadow duration-300 hover:shadow-xl">
+              <div className={`p-3 rounded-full ${stat.bgColor} ${stat.color} mr-4`}>
+                <stat.icon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">{stat.title}</p>
+                <CardTitle className="text-xl font-bold text-gray-900 mt-1">
+                  {stat.value}
+                </CardTitle>
+              </div>
+            </Card>
+          ))}
         </div>
 
         {/* Grid de Cursos */}
@@ -156,7 +293,6 @@ export default function MyCoursesPage() {
             ))}
           </div>
         ) : (
-          // Mensagem para caso o usuário não tenha cursos
           <div className="text-center bg-white p-12 rounded-lg shadow-md border">
             <h2 className="text-2xl font-semibold text-gray-800">Você ainda não se matriculou em nenhum curso</h2>
             <p className="text-gray-600 mt-2 mb-6">Explore nosso catálogo e comece a aprender hoje mesmo!</p>
