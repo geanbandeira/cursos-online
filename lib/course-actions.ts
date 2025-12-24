@@ -35,22 +35,38 @@ export async function getUserIdByEmail(email: string) {
   }
 }
 
+// lib/course-actions.ts
+
 export async function markLessonAsCompleted(userId: string, lessonId: number) {
   try {
-    console.log("[v0] Marcando aula como concluída - userId:", userId, "lessonId:", lessonId)
-
-    // Inserir ou atualizar o progresso da aula
+    // 1. Marca a aula como concluída
     await sql`
       INSERT INTO lesson_progress (user_id, lesson_id) 
       VALUES (${Number.parseInt(userId)}, ${lessonId})
       ON DUPLICATE KEY UPDATE completed_at = CURRENT_TIMESTAMP
-    `
+    `;
 
-    console.log("[v0] Aula marcada como concluída com sucesso")
-    return { success: true }
+    // 2. Busca o curso dessa lição para atualizar o progresso geral
+    const lessonInfo = await sql`SELECT course_id FROM lessons WHERE id = ${lessonId}`;
+    const courseId = lessonInfo[0]?.course_id;
+
+    if (courseId) {
+      // 3. Recalcula o progresso
+      const progressResult = await getUserProgress(userId, courseId);
+      if (progressResult.success) {
+        // 4. Atualiza a tabela enrollments com a nova porcentagem
+        await sql`
+          UPDATE enrollments 
+          SET progress = ${progressResult.progress.percentage}
+          WHERE user_id = ${Number.parseInt(userId)} AND course_id = ${courseId}
+        `;
+      }
+    }
+
+    return { success: true };
   } catch (error: any) {
-    console.error("[v0] Erro ao marcar aula como concluída:", error)
-    return { success: false, error: error.message }
+    console.error("Erro ao marcar aula como concluída:", error);
+    return { success: false, error: error.message };
   }
 }
 
