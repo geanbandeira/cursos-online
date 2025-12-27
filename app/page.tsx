@@ -1,21 +1,44 @@
 "use client"
 import { useEffect } from 'react';
+
 import Link from 'next/link'; // Importar Link do Next.js se for usar para navegação interna
 
 export default function HomePage() {
 
   useEffect(() => {
-    // Efeito de scroll no header
-    const handleScroll = () => {
-      const header = document.querySelector('.premium-header');
-      if (header) {
-        if (window.scrollY > 50) {
-          header.classList.add('scrolled');
-        } else {
-          header.classList.remove('scrolled');
-        }
+  // ===== SCROLL HEADER =====
+  const handleScroll = () => {
+    const header = document.querySelector('.premium-header');
+    if (header) {
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
       }
-    };
+    }
+  };
+
+  window.addEventListener('scroll', handleScroll);
+
+  // ===== GOOGLE ADS =====
+  const script = document.createElement("script");
+  script.src = "https://www.googletagmanager.com/gtag/js?id=AW-17833969775";
+  script.async = true;
+  document.head.appendChild(script);
+
+  (window as any).dataLayer = (window as any).dataLayer || [];
+  (window as any).gtag = function () {
+    (window as any).dataLayer.push(arguments);
+  };
+
+  (window as any).gtag("js", new Date());
+  (window as any).gtag("config", "AW-17833969775");
+
+  return () => {
+    window.removeEventListener('scroll', handleScroll);
+  };
+
+
 
     // Scroll suave para links âncora
     const smoothScroll = (e: MouseEvent) => {
@@ -135,7 +158,7 @@ export default function HomePage() {
                 <li><a href="https://api.whatsapp.com/send/?phone=5511995702066&text=Quero+saber+mais+sobre+os+seus+cursos+online.&type=phone_number&app_absent=0">Contato</a></li>
               </ul>
               <div className="flex items-center gap-4"> {/* Agrupa os botões */}
-                 {/* <a href="#cta" className="cta-button">Começar Agora</a> */}
+                {/* <a href="#cta" className="cta-button">Começar Agora</a> */}
                 <a href="/my-courses" className="login-button">
                   Meus Cursos
                 </a>
