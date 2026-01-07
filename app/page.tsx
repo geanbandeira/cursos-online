@@ -1,11 +1,12 @@
 "use client"
 import { useEffect } from 'react';
+
 import Link from 'next/link'; // Importar Link do Next.js se for usar para navegação interna
 
 export default function HomePage() {
 
   useEffect(() => {
-    // Efeito de scroll no header
+    // ===== SCROLL HEADER =====
     const handleScroll = () => {
       const header = document.querySelector('.premium-header');
       if (header) {
@@ -16,6 +17,28 @@ export default function HomePage() {
         }
       }
     };
+
+    window.addEventListener('scroll', handleScroll);
+
+    // ===== GOOGLE ADS =====
+    const script = document.createElement("script");
+    script.src = "https://www.googletagmanager.com/gtag/js?id=AW-17833969775";
+    script.async = true;
+    document.head.appendChild(script);
+
+    (window as any).dataLayer = (window as any).dataLayer || [];
+    (window as any).gtag = function () {
+      (window as any).dataLayer.push(arguments);
+    };
+
+    (window as any).gtag("js", new Date());
+    (window as any).gtag("config", "AW-17833969775");
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+
+
 
     // Scroll suave para links âncora
     const smoothScroll = (e: MouseEvent) => {
@@ -135,7 +158,7 @@ export default function HomePage() {
                 <li><a href="https://api.whatsapp.com/send/?phone=5511995702066&text=Quero+saber+mais+sobre+os+seus+cursos+online.&type=phone_number&app_absent=0">Contato</a></li>
               </ul>
               <div className="flex items-center gap-4"> {/* Agrupa os botões */}
-                 {/* <a href="#cta" className="cta-button">Começar Agora</a> */}
+                {/* <a href="#cta" className="cta-button">Começar Agora</a> */}
                 <a href="/my-courses" className="login-button">
                   Meus Cursos
                 </a>
@@ -158,10 +181,12 @@ export default function HomePage() {
 
               {/* Curso 1: Análise de Negócio - BPM */}
               <div className="course-card">
-                {/* Estilos inline são convertidos para objetos JS */}
-                <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')" }}>
-                  <span className="course-badge">Gestão & Negócios</span>
-                </div>
+                <a href="https://masterproject.com.br/curso/analise-negocio-bpm.html" style={{ textDecoration: 'none', display: 'block' }}>
+                  {/* Estilos inline são convertidos para objetos JS */}
+                  <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')" }}>
+                    <span className="course-badge">Gestão & Negócios</span>
+                  </div>
+                </a>
                 <div className="course-content">
                   <h3 className="course-title">Análise de Negócio - BPM</h3>
                   <p className="course-description">Conheça o Business Process Management - BPM para transformar negócios. Compreenda todo o processo de identificação de oportunidades e resolução de problemas empresariais.</p>
@@ -190,9 +215,11 @@ export default function HomePage() {
 
               {/* Curso 2: BPMN com Bizagi */}
               <div className="course-card">
-                <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')" }}>
-                  <span className="course-badge">Processos & Modelagem</span>
-                </div>
+                <a href="https://masterproject.com.br/curso/bpmn-bizagi.html" style={{ textDecoration: 'none', display: 'block' }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')" }}>
+                    <span className="course-badge">Processos & Modelagem</span>
+                  </div>
+                </a>
                 <div className="course-content">
                   <h3 className="course-title">BPMN com Bizagi</h3>
                   <p className="course-description">Aprenda Business Process Model and Notation (BPMN) para transformar sua representação de processos. Domine a modelagem com uma das soluções mais destacadas do mercado.</p>
@@ -217,9 +244,11 @@ export default function HomePage() {
 
               {/* Curso 3: Jira Software */}
               <div className="course-card">
-                <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1547658719-da2b51169166?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1064&q=80')" }}>
-                  <span className="course-badge">Ferramentas & Tecnologia</span>
-                </div>
+                <a href="https://masterproject.com.br/curso/jira-software.html" style={{ textDecoration: 'none', display: 'block' }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1547658719-da2b51169166?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1064&q=80')" }}>
+                    <span className="course-badge">Ferramentas & Tecnologia</span>
+                  </div>
+                </a>
                 <div className="course-content">
                   <h3 className="course-title">Jira Software - Gestão Ágil de Projetos e Operações</h3>
                   <p className="course-description">Aprenda a fazer Gestão Ágil de Projetos e Operações com o Jira Software. Domine quadros Kanban, Scrum, relatórios e automações.</p>
@@ -244,9 +273,11 @@ export default function HomePage() {
 
               {/* Curso 4: Gerenciamento de Projetos PMI - Iniciação ao Planejamento */}
               <div className="course-card">
-                <div className="course-image" style={{ backgroundImage: "url('https://plus.unsplash.com/premium_photo-1725400817468-ddb0135d865d?fm=jpg&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cHJvamVjdCUyMG1hbmFnZXJ8ZW58MHx8MHx8fDA%3D&ixlib=rb-4.1.0&q=60&w=3000')" }}>
-                  <span className="course-badge">Gestão & Liderança</span>
-                </div>
+                <a href="https://masterproject.com.br/curso/gerenciamento-projetos-pmi-iniciacao.html" style={{ textDecoration: 'none', display: 'block' }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://plus.unsplash.com/premium_photo-1725400817468-ddb0135d865d?fm=jpg&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cHJvamVjdCUyMG1hbmFnZXJ8ZW58MHx8MHx8fDA%3D&ixlib=rb-4.1.0&q=60&w=3000')" }}>
+                    <span className="course-badge">Gestão & Liderança</span>
+                  </div>
+                </a>
                 <div className="course-content">
                   <h3 className="course-title">Gerenciamento de Projetos PMI - Iniciação ao Planejamento</h3>
                   <p className="course-description">Domine as práticas do PMI e PMBOK para gerenciar projetos do início ao planejamento. Ideal para certificações PMP e CAPM.</p>
@@ -271,9 +302,11 @@ export default function HomePage() {
 
               {/* Curso 5: Gerenciamento de Projetos PMI - Planejamento Avançado */}
               <div className="course-card">
-                <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1115&q=80')" }}>
-                  <span className="course-badge">Gestão & Liderança</span>
-                </div>
+                <a href="https://masterproject.com.br/curso/gerenciamento-projetos-pmi-avancado.html" style={{ textDecoration: 'none', display: 'block' }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1115&q=80')" }}>
+                    <span className="course-badge">Gestão & Liderança</span>
+                  </div>
+                </a>
                 <div className="course-content">
                   <h3 className="course-title">Gerenciamento de Projetos PMI - Planejamento Avançado</h3>
                   <p className="course-description">Uma verdadeira imersão na gestão de qualidade em projetos. Domine as boas práticas do PMI em recursos, comunicação, partes interessadas, riscos e aquisições.</p>
@@ -298,9 +331,11 @@ export default function HomePage() {
 
               {/* Curso 6: Gerenciamento de Projetos PMI - Execução, Monitoramento e Controle */}
               <div className="course-card">
-                <div className="course-image" style={{ backgroundImage: "url('https://plus.unsplash.com/premium_photo-1658506729016-b0beeebda208?q=80&w=417&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}>
-                  <span className="course-badge">Gestão & Liderança</span>
-                </div>
+                <a href="https://masterproject.com.br/curso/gerenciamento-projetos-pmi-execucao.html" style={{ textDecoration: 'none', display: 'block' }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://plus.unsplash.com/premium_photo-1658506729016-b0beeebda208?q=80&w=417&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}>
+                    <span className="course-badge">Gestão & Liderança</span>
+                  </div>
+                </a>
                 <div className="course-content">
                   <h3 className="course-title">Gerenciamento de Projetos PMI - Execução, Monitoramento e Controle</h3>
                   <p className="course-description">Garanta o sucesso do projeto aplicando os processos de controle do PMI para lidar com mudanças, riscos e qualidade.</p>
@@ -325,9 +360,11 @@ export default function HomePage() {
 
               {/* Curso 7: Dominando OKR */}
               <div className="course-card">
-                <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')" }}>
-                  <span className="course-badge">Metodologias Ágeis</span>
-                </div>
+                <a href="https://masterproject.com.br/curso/OKR.html" style={{ textDecoration: 'none', display: 'block' }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')" }}>
+                    <span className="course-badge">Metodologias Ágeis</span>
+                  </div>
+                </a>
                 <div className="course-content">
                   <h3 className="course-title">Dominando OKR</h3>
                   <p className="course-description">Implemente as metodologias ágeis do OKR para gerenciar seus projetos. Aprenda a criar objetivos estratégicos e métricas de resultados.</p>

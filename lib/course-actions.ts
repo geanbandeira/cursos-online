@@ -35,22 +35,38 @@ export async function getUserIdByEmail(email: string) {
   }
 }
 
+// lib/course-actions.ts
+
 export async function markLessonAsCompleted(userId: string, lessonId: number) {
   try {
-    console.log("[v0] Marcando aula como concluída - userId:", userId, "lessonId:", lessonId)
-
-    // Inserir ou atualizar o progresso da aula
+    // 1. Marca a aula como concluída
     await sql`
       INSERT INTO lesson_progress (user_id, lesson_id) 
       VALUES (${Number.parseInt(userId)}, ${lessonId})
       ON DUPLICATE KEY UPDATE completed_at = CURRENT_TIMESTAMP
-    `
+    `;
 
-    console.log("[v0] Aula marcada como concluída com sucesso")
-    return { success: true }
+    // 2. Busca o curso dessa lição para atualizar o progresso geral
+    const lessonInfo = await sql`SELECT course_id FROM lessons WHERE id = ${lessonId}`;
+    const courseId = lessonInfo[0]?.course_id;
+
+    if (courseId) {
+      // 3. Recalcula o progresso
+      const progressResult = await getUserProgress(userId, courseId);
+      if (progressResult.success) {
+        // 4. Atualiza a tabela enrollments com a nova porcentagem
+        await sql`
+          UPDATE enrollments 
+          SET progress = ${progressResult.progress.percentage}
+          WHERE user_id = ${Number.parseInt(userId)} AND course_id = ${courseId}
+        `;
+      }
+    }
+
+    return { success: true };
   } catch (error: any) {
-    console.error("[v0] Erro ao marcar aula como concluída:", error)
-    return { success: false, error: error.message }
+    console.error("Erro ao marcar aula como concluída:", error);
+    return { success: false, error: error.message };
   }
 }
 
@@ -131,5 +147,38 @@ export async function getUserEnrolledCourses(userId: string) {
   } catch (error: any) {
     console.error("[v0] Erro ao buscar cursos matriculados:", error)
     return { success: false, error: error.message, courses: [] }
+  }
+}
+
+// lib/course-actions.ts
+
+// Busca todos os cursos para o dropdown do admin
+export async function getAllCoursesAction() {
+  try {
+    const result = await sql`SELECT id, title FROM courses ORDER BY title ASC`;
+    return { success: true, courses: result };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Realiza a matrícula manual de um aluno
+export async function enrollUserInCourseAction(userId: number, courseId: number) {
+  try {
+    // Verifica se já está matriculado para não duplicar
+    const check = await sql`SELECT id FROM enrollments WHERE user_id = ${userId} AND course_id = ${courseId}`;
+    
+    if (check.length > 0) {
+      throw new Error("Usuário já está matriculado neste curso.");
+    }
+
+    await sql`
+      INSERT INTO enrollments (user_id, course_id, enrolled_at, progress) 
+      VALUES (${userId}, ${courseId}, NOW(), 0)
+    `;
+    
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }

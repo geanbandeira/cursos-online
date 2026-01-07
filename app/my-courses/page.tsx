@@ -7,10 +7,10 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, BookOpen } from "lucide-react"
-import { getUserIdByEmail } from "@/lib/course-actions"
-// Importe a nova função que criamos
-import { getUserEnrolledCourses } from "@/lib/course-actions" 
+import { ArrowLeft, BookOpen, Clock, Calendar, CheckCircle, GraduationCap, LogIn } from "lucide-react" 
+import { getUserIdByEmail, getUserEnrolledCourses, getUserProgress } from "@/lib/course-actions"
+import { format, formatDistanceToNow, parseISO } from "date-fns" 
+import { ptBR } from 'date-fns/locale' 
 
 // Definimos um tipo para os cursos que vamos receber
 interface EnrolledCourse {
@@ -25,54 +25,186 @@ interface EnrolledCourse {
 export default function MyCoursesPage() {
   const [courses, setCourses] = useState<EnrolledCourse[]>([])
   const [loading, setLoading] = useState(true)
-  // <<< MUDANÇA 1: Renomeie 'loading' do useAuth para 'authLoading'
+  const [totalCompletedLessons, setTotalCompletedLessons] = useState(0) 
+  const [totalCourseDuration, setTotalCourseDuration] = useState("0h 0min")
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
 
+  // MOCK (Fallback): Se o dado real não estiver em user.lastLoginAt, usa 15 min atrás para desenvolvimento.
+  const rawLastLoginAt = user?.lastLoginAt || new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  
+  // NOVO ESTADO: Armazena a exibição formatada do último login
+  const [lastLoginDisplay, setLastLoginDisplay] = useState({ full: "Aguardando...", friendly: "..." });
+
+
+  // --- FUNÇÃO E HOOK PARA ATUALIZAR O ÚLTIMO ACESSO A CADA MINUTO ---
   useEffect(() => {
-    // <<< MUDANÇA 2: Adicionamos esta verificação
-    // Se a autenticação ainda estiver carregando (authLoading === true),
-    // não faça nada e espere.
+    const updateTimeDisplay = () => {
+      if (rawLastLoginAt && rawLastLoginAt !== 'Data indisponível') {
+        const date = parseISO(rawLastLoginAt);
+        // Formato longo para a tooltip (data e hora exatas)
+        const fullDate = format(date, "EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR });
+        // Formato amigável (há X tempo)
+        const friendlyDistance = formatDistanceToNow(date, { addSuffix: true, locale: ptBR });
+        
+        setLastLoginDisplay({ 
+          full: fullDate.charAt(0).toUpperCase() + fullDate.slice(1),
+          friendly: friendlyDistance
+        });
+      }
+    };
+
+    updateTimeDisplay(); // Roda imediatamente ao carregar
+    
+    // Roda a cada 60 segundos (1 minuto) para manter o tempo relativo atualizado
+    const timer = setInterval(updateTimeDisplay, 60000); 
+
+    return () => clearInterval(timer);
+  }, [rawLastLoginAt]); // Re-executa quando o dado de login (user.lastLoginAt) é carregado
+  // ------------------------------------------------------------------
+  
+  // Função para formatar a data por extenso e calcular saudação
+  const getFormattedDateAndGreeting = () => {
+    const today = new Date();
+    // Formatação da data por extenso (Dia da semana, XX de mês)
+    const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+    });
+    // Formata e capitaliza a primeira letra do dia da semana
+    const fullDate = dateFormatter.format(today).replace(/\s/g, ' ').replace(/,$/, ''); 
+    const finalDate = fullDate.charAt(0).toUpperCase() + fullDate.slice(1);
+
+    const currentHour = today.getHours();
+    let greeting = "Olá";
+    if (currentHour >= 6 && currentHour < 12) {
+        greeting = "Bom dia";
+    } else if (currentHour >= 12 && currentHour < 18) {
+        greeting = "Boa tarde";
+    } else {
+        greeting = "Boa noite";
+    }
+
+    return { fullDate: finalDate, greeting };
+  };
+
+  const { fullDate, greeting } = getFormattedDateAndGreeting();
+
+
+  // --- FUNÇÕES AUXILIARES DE CÁLCULO ---
+  const parseDurationToMinutes = (duration: string): number => {
+    let totalMinutes = 0
+    if (!duration) return 0
+
+    const parts = duration.match(/(\d+)\s*(h|min)/g)
+    if (!parts) return 0
+
+    parts.forEach(part => {
+      const value = parseInt(part.match(/\d+/)?.[0] || '0')
+      if (part.includes('h')) {
+        totalMinutes += value * 60
+      } else if (part.includes('min')) {
+        totalMinutes += value
+      }
+    })
+    return totalMinutes
+  }
+
+  const formatMinutesToHoursAndMinutes = (totalMinutes: number): string => {
+    const hours = Math.floor(totalMinutes / 60)
+    const minutes = totalMinutes % 60
+    return `${hours}h ${minutes}min`
+  }
+  // ------------------------------------
+
+  // DEFINIÇÃO DAS ESTATÍSTICAS
+  const stats = [
+      { 
+        title: "Cursos Ativos", 
+        value: courses.length,
+        icon: BookOpen, 
+        color: "text-blue-600", 
+        bgColor: "bg-blue-50" 
+      },
+      { 
+        title: "Aulas Concluídas", 
+        value: totalCompletedLessons,
+        icon: CheckCircle, 
+        color: "text-green-600", 
+        bgColor: "bg-green-50" 
+      },
+      { 
+        title: "Total de Horas", 
+        value: totalCourseDuration,
+        icon: Clock, 
+        color: "text-orange-600", 
+        bgColor: "bg-orange-50" 
+      },
+      { 
+        title: "Próxima Meta", 
+        value: "Certificação",
+        icon: GraduationCap, 
+        color: "text-purple-600", 
+        bgColor: "bg-purple-50" 
+      },
+  ];
+
+  useEffect(() => {
     if (authLoading) {
       return
     }
 
-    // Quando authLoading for 'false', o código abaixo continua.
-    // Agora, a verificação do 'user' é segura.
     const fetchEnrolledCourses = async () => {
-      // 1. Verificar se o usuário está logado
       if (!user) {
-        // Se não estiver (e a autenticação já terminou), redireciona para o login
         router.push("/auth/login")
+        setLoading(false)
         return
       }
 
-      // Se chegou aqui, o usuário existe! Vamos buscar os cursos.
       try {
-        // 2. Buscar o ID do usuário pelo email (função que já existe)
         const userResult = await getUserIdByEmail(user.email)
         
         if (userResult.success && userResult.userId) {
-          // 3. Buscar os cursos matriculados (nossa nova função)
-          const coursesResult = await getUserEnrolledCourses(userResult.userId.toString())
+          const userIdString = userResult.userId.toString(); // ID do usuário
+
+          const coursesResult = await getUserEnrolledCourses(userIdString)
           
           if (coursesResult.success) {
-            setCourses(coursesResult.courses as EnrolledCourse[])
+            const fetchedCourses = coursesResult.courses as EnrolledCourse[]
+            setCourses(fetchedCourses)
+
+            // --- CÁLCULO DAS ESTATÍSTICAS REAIS ---
+            let completedCount = 0
+            let totalMinutes = 0
+            
+            await Promise.all(fetchedCourses.map(async (course) => {
+              // 1. Duração total (soma)
+              totalMinutes += parseDurationToMinutes(course.total_duration)
+              
+              // 2. Aulas concluídas (soma, chamando a função para cada curso)
+              const progressResult = await getUserProgress(userIdString, course.id)
+              if (progressResult.success && progressResult.progress) {
+                completedCount += progressResult.progress.completed
+              }
+            }))
+
+            setTotalCompletedLessons(completedCount)
+            setTotalCourseDuration(formatMinutesToHoursAndMinutes(totalMinutes))
+            // ------------------------------------
           }
         }
       } catch (error) {
-        console.error("Erro ao buscar 'Meus Cursos':", error)
+        console.error("Erro ao buscar 'Meus Cursos' ou progresso:", error)
       } finally {
         setLoading(false)
       }
     }
 
     fetchEnrolledCourses()
-    // <<< MUDANÇA 3: Adicione 'authLoading' na lista de dependências
   }, [user, router, authLoading])
 
-  // Mostrar um loader enquanto busca os dados
-  // <<< MUDANÇA 4: Mostrar o spinner se 'loading' OU 'authLoading' for verdadeiro
+
   if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -110,11 +242,39 @@ export default function MyCoursesPage() {
 
       {/* Conteúdo Principal */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Meus Cursos</h1>
-          <p className="text-lg text-gray-600">
-            Continue de onde parou. Acesse todos os cursos que você está matriculado.
+        {/* SEÇÃO DE HEADER DINÂMICO E DATA ATUAL (sem hora) */}
+        <div className="mb-10 p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-0">
+              {greeting}, {user?.name || "Aluno(a)"}!
+            </h1>
+            <div className="text-left sm:text-right flex flex-col items-start sm:items-end space-y-1">
+              <div className="flex items-center text-gray-600 text-sm sm:text-base">
+                <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                <span>{fullDate}</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-lg text-gray-600 mt-2">
+            Acesse seus cursos e continue de onde parou.
           </p>
+        </div>
+
+        {/* CARTÕES DE ESTATÍSTICAS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {stats.map((stat, index) => (
+            <Card key={index} className="flex flex-row items-center p-4 border-0 shadow-md transition-shadow duration-300 hover:shadow-xl">
+              <div className={`p-3 rounded-full ${stat.bgColor} ${stat.color} mr-4`}>
+                <stat.icon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">{stat.title}</p>
+                <CardTitle className="text-xl font-bold text-gray-900 mt-1">
+                  {stat.value}
+                </CardTitle>
+              </div>
+            </Card>
+          ))}
         </div>
 
         {/* Grid de Cursos */}
@@ -156,7 +316,6 @@ export default function MyCoursesPage() {
             ))}
           </div>
         ) : (
-          // Mensagem para caso o usuário não tenha cursos
           <div className="text-center bg-white p-12 rounded-lg shadow-md border">
             <h2 className="text-2xl font-semibold text-gray-800">Você ainda não se matriculou em nenhum curso</h2>
             <p className="text-gray-600 mt-2 mb-6">Explore nosso catálogo e comece a aprender hoje mesmo!</p>
@@ -167,6 +326,20 @@ export default function MyCoursesPage() {
             </Link>
           </div>
         )}
+
+        {/* INFORMAÇÃO DE ÚLTIMO LOGIN */}
+        <div className="w-full text-right mt-10">
+          <p className="text-xs text-gray-400 flex items-center justify-end">
+            <LogIn className="w-3 h-3 mr-1" />
+            Último acesso: 
+            <span 
+              className="text-gray-500 font-medium ml-1 cursor-help underline decoration-dotted underline-offset-2" 
+              title={lastLoginDisplay.full} // Mostra data e hora exatas na tooltip
+            >
+              {lastLoginDisplay.friendly} {/* Mostra "há X tempo" */}
+            </span>
+          </p>
+        </div>
       </main>
     </div>
   )

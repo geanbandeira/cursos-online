@@ -587,7 +587,8 @@ export default function CoursePage() {
         <div className="px-2 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center space-x-1 sm:space-x-4 flex-1 min-w-0">
-              <Link href="/">
+              <Link href="/my-courses
+              ">
                 <Button variant="ghost" size="sm" className="px-2 sm:px-4">
                   <ChevronLeft className="w-4 h-4 sm:mr-2" />
                   <span className="hidden sm:inline">Voltar</span>

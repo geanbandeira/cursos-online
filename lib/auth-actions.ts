@@ -51,6 +51,27 @@ export async function saveUserToDatabase(email: string, name: string) {
   }
 }
 
+export async function getAllUsers(adminEmail: string) {
+  try {
+    // 1. Verifica se quem está pedindo é admin
+    const adminCheck = await query("SELECT role FROM users WHERE email = ?", [adminEmail]);
+    
+    if (!adminCheck.rows[0] || adminCheck.rows[0].role !== 'admin') {
+      throw new Error("Acesso não autorizado");
+    }
+
+    // 2. Só então busca todos os usuários
+    const result = await query(
+      "SELECT id, email, first_name, last_name, is_active, role, created_at FROM users ORDER BY created_at DESC",
+      []
+    );
+    return { success: true, users: result.rows };
+  } catch (error: any) {
+    console.error("[v0] Erro ao buscar usuários:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function signUpAction(email: string, password: string, name: string, phone: string) {
   try {
     console.log("[v0] Iniciando cadastro para email:", email)
@@ -167,6 +188,8 @@ export async function confirmSignUpAction(email: string, code: string) {
   }
 }
 
+// lib/auth-actions.ts
+
 export async function getUserFromToken(accessToken: string) {
   try {
     const command = new GetUserCommand({
@@ -175,7 +198,6 @@ export async function getUserFromToken(accessToken: string) {
 
     const response = await client.send(command)
 
-    // Convertendo atributos para formato mais simples
     const userAttributes: any = {}
     response.UserAttributes?.forEach((attr) => {
       if (attr.Name && attr.Value) {
@@ -183,15 +205,23 @@ export async function getUserFromToken(accessToken: string) {
       }
     })
 
+    const email = userAttributes.email || ""
+
+    // NOVO: Busca o cargo (role) no MySQL RDS usando o email do Cognito
+    const dbUser = await query("SELECT role FROM users WHERE email = ?", [email]);
+    const role = dbUser.rows[0]?.role || "user";
+
     return {
       success: true,
       data: {
-        email: userAttributes.email || "",
+        email: email,
         name: userAttributes.name || "",
         phone: userAttributes.phone_number || "",
+        role: role, // Agora o frontend saberá se você é admin
       },
     }
   } catch (error: any) {
+    console.error("[v0] Erro ao buscar dados completos do usuário:", error.message);
     return { success: false, error: error.message }
   }
 }
