@@ -141,6 +141,19 @@ export default function HomePage() {
 
     <>
 
+    {/* Botão WhatsApp Flutuante */}
+<a 
+  href="https://wa.me/5511970849396?text=Olá!%20Vi%20as%20ofertas%20no%20site%20e%20quero%20garantir%20meu%20desconto%20exclusivo%20com%20um%20consultor."
+  className="whatsapp-float"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <span className="whatsapp-text">Falar com Consultor (Oferta Exclusiva)</span>
+  <div className="whatsapp-icon">
+    <i className="fab fa-whatsapp"></i>
+  </div>
+</a>
+
       <div className="homepage-styles">
         {/* Header */}
         {/* Note a troca de 'class' por 'className' */}
