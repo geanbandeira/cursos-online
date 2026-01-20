@@ -754,7 +754,7 @@ export default function CoursePage() {
                               <div className="flex items-center justify-between mb-1">
                                 <span className="text-xs font-medium text-gray-500">Aula {lesson.lesson_order}</span>
 
-                                {lesson.is_preview === 1 && (
+                                {lesson.is_preview && (
                                   <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-1 rounded">PREVIEW</span>
                                 )}
                                 {isLessonCompletedByUser(lesson.id) && (
@@ -874,7 +874,7 @@ export default function CoursePage() {
                       <span>
                         Aula {selectedLesson.lesson_order} de {lessons.length}
                       </span>
-                      {selectedLesson.is_preview === 1 && (
+                      {selectedLesson.is_preview && (
                         <Badge className="bg-blue-100 text-blue-800">Preview Gratuito</Badge>
                       )}
                     </div>
