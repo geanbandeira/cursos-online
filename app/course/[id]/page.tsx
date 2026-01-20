@@ -189,17 +189,16 @@ export default function CoursePage() {
   }, [])
 
   const handleLessonSelect = (lesson: Lesson) => {
-    if (lesson.is_preview || isEnrolled) {
-      console.log("[v0] Lição selecionada:", lesson.title)
-      setSelectedLesson(lesson)
-    } else {
-      setShowPurchaseModal(true)
-    }
+  if (lesson.is_preview || isEnrolled || lesson.lesson_order <= 3) {
+    setSelectedLesson(lesson)
+  } else {
+    setShowPurchaseModal(true)
   }
+}
 
   const canAccessLesson = (lesson: Lesson) => {
-    return lesson.is_preview || isEnrolled
-  }
+  return lesson.is_preview || isEnrolled || lesson.lesson_order <= 3
+}
 
   const PurchaseModal = () => {
     if (!showPurchaseModal || !course) return null
