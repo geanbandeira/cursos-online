@@ -219,7 +219,7 @@ export default function HomePage() {
                   {/* Links para páginas internas do Next.js podem usar o componente <Link> */}
                   {/* Links externos continuam como <a> */}
                   {/* Ajuste o href para o caminho relativo dentro do seu app ou URL completa */}
-                  <a href="/course/4" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 1° Aula Grátis </a>
+                  <a href="/course/4" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 3 Aula Grátis </a>
                   {/* Tags <br> precisam ser auto-fechadas: <br /> */}
                   <br /> <br />
                   <a href="https://pag.ae/814jCRAYJ" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Comprar Agora</a>
@@ -249,7 +249,7 @@ export default function HomePage() {
                     </div>
                     <div className="price-installments">ou 3x de R$ 83,33</div>
                   </div>
-                  <a href="/course/3" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 1° Aula Grátis</a>
+                  <a href="/course/3" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 3 Aula Grátis</a>
                   <br /> <br />
                   <a href="https://pag.ae/814jDsSb6" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Comprar Agora</a>
                 </div>
@@ -278,7 +278,7 @@ export default function HomePage() {
                     </div>
                     <div className="price-installments">ou 4x de R$ 49,99</div>
                   </div>
-                  <a href="/course/2" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 1° Aula Grátis</a>
+                  <a href="/course/2" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 3 Aula Grátis</a>
                   <br /> <br />
                   <a href="https://pag.ae/814jBMHHJ" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Comprar Agora</a>
                 </div>
@@ -307,7 +307,7 @@ export default function HomePage() {
                     </div>
                     <div className="price-installments">ou 3x de R$ 227,66</div>
                   </div>
-                  <a href="/course/5" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 1° Aula Grátis</a>
+                  <a href="/course/5" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 3 Aula Grátis</a>
                   <br /> <br />
                   <a href="https://pag.ae/814juuYQo" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Comprar Agora</a>
                 </div>
@@ -336,7 +336,7 @@ export default function HomePage() {
                     </div>
                     <div className="price-installments">ou 3x de R$ 277,66</div>
                   </div>
-                  <a href="/course/6" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 1° Aula Grátis</a>
+                  <a href="/course/6" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 3 Aula Grátis</a>
                   <br /> <br />
                   <a href="https://pag.ae/814jwrcpr" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Comprar Agora</a>
                 </div>
@@ -365,7 +365,7 @@ export default function HomePage() {
                     </div>
                     <div className="price-installments">ou 3x de R$ 277,66</div>
                   </div>
-                  <a href="/course/7" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 1° Aula Grátis</a>
+                  <a href="/course/7" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 3 Aula Grátis</a>
                   <br /> <br />
                   <a href="https://pag.ae/814jz9kxQ" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Comprar Agora</a>
                 </div>
@@ -394,7 +394,7 @@ export default function HomePage() {
                     </div>
                     <div className="price-installments">ou 3x de R$ 66,66</div>
                   </div>
-                  <a href="/course/1" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 1° Aula Grátis</a>
+                  <a href="/course/1" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 3 Aula Grátis</a>
                   <br /> <br />
                   <a href="https://pag.ae/814jt1P13" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Comprar Agora</a>
                 </div>
