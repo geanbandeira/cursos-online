@@ -7,7 +7,7 @@ import { FileText, Download, ArrowLeft, FolderOpen } from "lucide-react"
 import Link from "next/link"
 import { getCourseMaterials } from "@/lib/course-actions"
 
-// 1. Definimos a interface para acabar com o erro de "m.file_url"
+// Define a estrutura para o TypeScript parar de reclamar
 interface Material {
   id: number;
   title: string;
@@ -18,50 +18,29 @@ interface Material {
 
 export default function MaterialsPage() {
   const { id } = useParams();
-  // 2. Tipamos o estado como um array de Materiais
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // 3. Função de download movida para dentro para facilitar acesso
-  const handleDownload = async (url: string, fileName: string) => {
-    try {
-      const response = await fetch(url, { mode: 'cors' });
-      if (!response.ok) throw new Error("Erro ao acessar o arquivo");
-
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (error) {
-      console.error("Erro ao baixar via código (CORS):", error);
-      // Fallback: Tenta download direto pelo navegador se o CORS falhar
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = "_blank";
-      link.download = fileName;
-      link.click();
-    }
-  };
 
   useEffect(() => {
     async function load() {
       const res = await getCourseMaterials(Number(id));
-      // @ts-ignore - Caso o retorno da action não esteja tipado
+      // @ts-ignore
       if (res.success) setMaterials(res.materials);
       setLoading(false);
     }
     load();
   }, [id]);
 
+  // Novo jeito: Chama o nosso próprio servidor para baixar
+  const handleDownload = (url: string, title: string) => {
+    const fileName = title.endsWith('.pdf') ? title : `${title}.pdf`;
+    window.location.href = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}`;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 sm:p-12">
       <div className="max-w-3xl mx-auto">
-        <Link href="/my-courses">
+        <Link href={`/course/${id}`}>
           <Button variant="ghost" className="mb-6"><ArrowLeft className="mr-2 h-4 w-4" /> Voltar</Button>
         </Link>
 
@@ -75,7 +54,7 @@ export default function MaterialsPage() {
         ) : materials.length > 0 ? (
           <div className="grid gap-4">
             {materials.map((m) => (
-              <Card key={m.id} className="hover:shadow-md transition-all border-0 shadow-sm">
+              <Card key={m.id} className="border-0 shadow-sm">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="bg-blue-50 p-3 rounded-lg text-blue-600"><FileText /></div>
@@ -96,9 +75,7 @@ export default function MaterialsPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed">
-            <p className="text-gray-500">Nenhum material disponível ainda.</p>
-          </div>
+          <p>Nenhum material disponível.</p>
         )}
       </div>
     </div>
