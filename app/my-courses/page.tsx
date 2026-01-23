@@ -7,10 +7,10 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, BookOpen, Clock, Calendar, CheckCircle, GraduationCap, LogIn } from "lucide-react" 
+import { ArrowLeft, BookOpen, Clock, Calendar, CheckCircle, GraduationCap, LogIn } from "lucide-react"
 import { getUserIdByEmail, getUserEnrolledCourses, getUserProgress } from "@/lib/course-actions"
-import { format, formatDistanceToNow, parseISO } from "date-fns" 
-import { ptBR } from 'date-fns/locale' 
+import { format, formatDistanceToNow, parseISO } from "date-fns"
+import { ptBR } from 'date-fns/locale'
 
 // Definimos um tipo para os cursos que vamos receber
 interface EnrolledCourse {
@@ -25,14 +25,14 @@ interface EnrolledCourse {
 export default function MyCoursesPage() {
   const [courses, setCourses] = useState<EnrolledCourse[]>([])
   const [loading, setLoading] = useState(true)
-  const [totalCompletedLessons, setTotalCompletedLessons] = useState(0) 
+  const [totalCompletedLessons, setTotalCompletedLessons] = useState(0)
   const [totalCourseDuration, setTotalCourseDuration] = useState("0h 0min")
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
 
   // MOCK (Fallback): Se o dado real não estiver em user.lastLoginAt, usa 15 min atrás para desenvolvimento.
   const rawLastLoginAt = user?.lastLoginAt || new Date(Date.now() - 15 * 60 * 1000).toISOString();
-  
+
   // NOVO ESTADO: Armazena a exibição formatada do último login
   const [lastLoginDisplay, setLastLoginDisplay] = useState({ full: "Aguardando...", friendly: "..." });
 
@@ -46,8 +46,8 @@ export default function MyCoursesPage() {
         const fullDate = format(date, "EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR });
         // Formato amigável (há X tempo)
         const friendlyDistance = formatDistanceToNow(date, { addSuffix: true, locale: ptBR });
-        
-        setLastLoginDisplay({ 
+
+        setLastLoginDisplay({
           full: fullDate.charAt(0).toUpperCase() + fullDate.slice(1),
           friendly: friendlyDistance
         });
@@ -55,14 +55,14 @@ export default function MyCoursesPage() {
     };
 
     updateTimeDisplay(); // Roda imediatamente ao carregar
-    
+
     // Roda a cada 60 segundos (1 minuto) para manter o tempo relativo atualizado
-    const timer = setInterval(updateTimeDisplay, 60000); 
+    const timer = setInterval(updateTimeDisplay, 60000);
 
     return () => clearInterval(timer);
   }, [rawLastLoginAt]); // Re-executa quando o dado de login (user.lastLoginAt) é carregado
   // ------------------------------------------------------------------
-  
+
   // Função para formatar a data por extenso e calcular saudação
   const getFormattedDateAndGreeting = () => {
     const today = new Date();
@@ -73,17 +73,17 @@ export default function MyCoursesPage() {
       month: 'long',
     });
     // Formata e capitaliza a primeira letra do dia da semana
-    const fullDate = dateFormatter.format(today).replace(/\s/g, ' ').replace(/,$/, ''); 
+    const fullDate = dateFormatter.format(today).replace(/\s/g, ' ').replace(/,$/, '');
     const finalDate = fullDate.charAt(0).toUpperCase() + fullDate.slice(1);
 
     const currentHour = today.getHours();
     let greeting = "Olá";
     if (currentHour >= 6 && currentHour < 12) {
-        greeting = "Bom dia";
+      greeting = "Bom dia";
     } else if (currentHour >= 12 && currentHour < 18) {
-        greeting = "Boa tarde";
+      greeting = "Boa tarde";
     } else {
-        greeting = "Boa noite";
+      greeting = "Boa noite";
     }
 
     return { fullDate: finalDate, greeting };
@@ -120,34 +120,34 @@ export default function MyCoursesPage() {
 
   // DEFINIÇÃO DAS ESTATÍSTICAS
   const stats = [
-      { 
-        title: "Cursos Ativos", 
-        value: courses.length,
-        icon: BookOpen, 
-        color: "text-blue-600", 
-        bgColor: "bg-blue-50" 
-      },
-      { 
-        title: "Aulas Concluídas", 
-        value: totalCompletedLessons,
-        icon: CheckCircle, 
-        color: "text-green-600", 
-        bgColor: "bg-green-50" 
-      },
-      { 
-        title: "Total de Horas", 
-        value: totalCourseDuration,
-        icon: Clock, 
-        color: "text-orange-600", 
-        bgColor: "bg-orange-50" 
-      },
-      { 
-        title: "Próxima Meta", 
-        value: "Certificação",
-        icon: GraduationCap, 
-        color: "text-purple-600", 
-        bgColor: "bg-purple-50" 
-      },
+    {
+      title: "Cursos Ativos",
+      value: courses.length,
+      icon: BookOpen,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50"
+    },
+    {
+      title: "Aulas Concluídas",
+      value: totalCompletedLessons,
+      icon: CheckCircle,
+      color: "text-green-600",
+      bgColor: "bg-green-50"
+    },
+    {
+      title: "Total de Horas",
+      value: totalCourseDuration,
+      icon: Clock,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50"
+    },
+    {
+      title: "Próxima Meta",
+      value: "Certificação",
+      icon: GraduationCap,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
+    },
   ];
 
   useEffect(() => {
@@ -164,12 +164,12 @@ export default function MyCoursesPage() {
 
       try {
         const userResult = await getUserIdByEmail(user.email)
-        
+
         if (userResult.success && userResult.userId) {
           const userIdString = userResult.userId.toString(); // ID do usuário
 
           const coursesResult = await getUserEnrolledCourses(userIdString)
-          
+
           if (coursesResult.success) {
             const fetchedCourses = coursesResult.courses as EnrolledCourse[]
             setCourses(fetchedCourses)
@@ -177,11 +177,11 @@ export default function MyCoursesPage() {
             // --- CÁLCULO DAS ESTATÍSTICAS REAIS ---
             let completedCount = 0
             let totalMinutes = 0
-            
+
             await Promise.all(fetchedCourses.map(async (course) => {
               // 1. Duração total (soma)
               totalMinutes += parseDurationToMinutes(course.total_duration)
-              
+
               // 2. Aulas concluídas (soma, chamando a função para cada curso)
               const progressResult = await getUserProgress(userIdString, course.id)
               if (progressResult.success && progressResult.progress) {
@@ -286,8 +286,8 @@ export default function MyCoursesPage() {
                 className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 flex flex-col h-full"
               >
                 <div className="h-48 w-full overflow-hidden rounded-t-xl">
-                  <img 
-                    src={course.image_url || "/placeholder.jpg"} 
+                  <img
+                    src={course.image_url || "/placeholder.jpg"}
                     alt={course.title}
                     className="w-full h-full object-cover"
                   />
@@ -310,8 +310,19 @@ export default function MyCoursesPage() {
                       <BookOpen className="w-4 h-4 mr-2" />
                       Acessar Curso
                     </Button>
-                  </Link>
+                  </Link> <br />
+
+                  <div className="flex flex-col gap-2 mt-auto">
+                    <Link href={`/course/${course.id}/materiais`} className="flex-1">
+                      <Button className="w-full bg-[#2E2E2E] hover:bg-[#3A3A3A] text-white">
+                        <BookOpen className="w-4 h-4 mr-2" /> Obter materiais
+                      </Button>
+                    </Link>
+
+                
+                  </div>
                 </CardContent>
+
               </Card>
             ))}
           </div>
@@ -331,9 +342,9 @@ export default function MyCoursesPage() {
         <div className="w-full text-right mt-10">
           <p className="text-xs text-gray-400 flex items-center justify-end">
             <LogIn className="w-3 h-3 mr-1" />
-            Último acesso: 
-            <span 
-              className="text-gray-500 font-medium ml-1 cursor-help underline decoration-dotted underline-offset-2" 
+            Último acesso:
+            <span
+              className="text-gray-500 font-medium ml-1 cursor-help underline decoration-dotted underline-offset-2"
               title={lastLoginDisplay.full} // Mostra data e hora exatas na tooltip
             >
               {lastLoginDisplay.friendly} {/* Mostra "há X tempo" */}

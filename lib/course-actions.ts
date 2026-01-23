@@ -182,3 +182,24 @@ export async function enrollUserInCourseAction(userId: number, courseId: number)
     return { success: false, error: error.message };
   }
 }
+
+// No final do arquivo lib/course-actions.ts
+
+export async function getCourseMaterials(courseId: number) {
+  try {
+    console.log("[v0] Buscando materiais para o curso:", courseId);
+    
+    // Busca os materiais vinculados ao ID do curso
+    const result = await sql`
+      SELECT id, title, file_url, file_type, file_size 
+      FROM course_materials 
+      WHERE course_id = ${courseId}
+      ORDER BY id DESC
+    `;
+    
+    return { success: true, materials: result };
+  } catch (error: any) {
+    console.error("[v0] Erro ao buscar materiais:", error);
+    return { success: false, materials: [], error: error.message };
+  }
+}
