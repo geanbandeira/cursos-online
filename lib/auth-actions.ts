@@ -26,27 +26,41 @@ function calculateSecretHash(username: string): string {
     .digest("base64")
 }
 
+// Localize a função saveUserToDatabase e adicione a parte da matrícula
 export async function saveUserToDatabase(email: string, name: string) {
   try {
-    console.log("[v0] Iniciando salvamento no banco de dados MySQL RDS para:", email)
-
-    // Separar primeiro e último nome
     const nameParts = name.trim().split(" ")
     const firstName = nameParts[0] || ""
     const lastName = nameParts.slice(1).join(" ") || ""
 
-    console.log("[v0] Dados preparados - firstName:", firstName, "lastName:", lastName)
-
+    // 1. Cria o usuário
     const result = await query(
       `INSERT INTO users (email, first_name, last_name, is_active, created_at, updated_at) 
        VALUES (?, ?, ?, ?, NOW(), NOW())`,
       [email, firstName, lastName, 1],
     )
 
-    console.log("[v0] Usuário salvo no banco MySQL RDS com sucesso. ID:", result.rows)
-    return { success: true, data: { id: result.rows, email, firstName, lastName } }
+    // 2. PEGA O ID DO USUÁRIO QUE ACABOU DE SER CRIADO
+    // No MySQL, o ID fica em result.rows.insertId
+    const newUserId = (result.rows as any).insertId;
+
+    if (newUserId) {
+      // 3. FAZ A MATRÍCULA AUTOMÁTICA
+      // Troque o número 11 pelo ID real do seu curso de Aulas Abertas
+      const ID_CURSO_GRATUITO = 11; 
+      
+      await query(
+        `INSERT INTO enrollments (user_id, course_id, enrolled_at, progress) 
+         VALUES (?, ?, NOW(), 0)`,
+        [newUserId, ID_CURSO_GRATUITO]
+      );
+      
+      console.log(`[v0] Matrícula automática realizada no curso ${ID_CURSO_GRATUITO} para o usuário ${newUserId}`);
+    }
+
+    return { success: true, data: { id: newUserId, email, firstName, lastName } }
   } catch (error: any) {
-    console.log("[v0] Erro ao salvar usuário no banco MySQL RDS:", error)
+    console.log("[v0] Erro ao salvar usuário e matricular:", error)
     return { success: false, error: error.message }
   }
 }

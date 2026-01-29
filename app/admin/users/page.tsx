@@ -53,6 +53,13 @@ export default function AdminUsersPage() {
 
   if (authLoading || user?.role !== 'admin') return <div className="p-8 text-center">Verificando...</div>
 
+  const [selectedCerts, setSelectedCerts] = useState<any[] | null>(null);
+
+const handleViewCerts = async (id: number) => {
+  const res = await getUserCertificatesAction(id);
+  if (res.success) setSelectedCerts(res.certificates);
+};
+
   return (
     <div className="p-8 space-y-6">
       <div className="flex justify-between items-center">
@@ -86,6 +93,27 @@ export default function AdminUsersPage() {
                   <TableCell>{u.role}</TableCell>
                 </TableRow>
               ))}
+
+              <TableCell>
+  <Button variant="outline" size="sm" onClick={() => handleViewCerts(u.id)}>
+    Ver Certificados
+  </Button>
+</TableCell>
+
+{selectedCerts && (
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <Card className="w-96 p-4">
+      <h2 className="font-bold mb-4">Certificados do Aluno</h2>
+      {selectedCerts.map((c, i) => (
+        <div key={i} className="flex justify-between border-b py-2">
+          <span>{c.title}</span>
+          <Badge>{c.certificate_code}</Badge>
+        </div>
+      ))}
+      <Button className="w-full mt-4" onClick={() => setSelectedCerts(null)}>Fechar</Button>
+    </Card>
+  </div>
+)}
             </TableBody>
           </Table>
         </CardContent>
@@ -136,5 +164,9 @@ export default function AdminUsersPage() {
         </div>
       )}
     </div>
+
+    
   )
+  
 }
+

@@ -203,3 +203,27 @@ export async function getCourseMaterials(courseId: number) {
     return { success: false, materials: [], error: error.message };
   }
 }
+
+// Adicione esta função ao final do arquivo lib/course-actions.ts
+
+export async function getRecommendedCourses(userId: string) {
+  try {
+    // 1. Filtra cursos que o usuário NÃO possui
+    // 2. Filtra IDs 9 e 10 (Turmas Fechadas de Power BI)
+    // 3. Garante que o curso está ativo
+    const rows = await sql`
+      SELECT * FROM courses 
+      WHERE id NOT IN (SELECT course_id FROM enrollments WHERE user_id = ${Number.parseInt(userId)})
+      AND id NOT IN (9, 10)
+      AND is_active = true
+      LIMIT 10
+    `;
+
+    console.log("[v0] Buscando recomendações (excluindo IDs 9 e 10). Encontrados:", rows.length);
+    
+    return { success: true, courses: rows };
+  } catch (error: any) {
+    console.error("[v0] Erro ao buscar cursos recomendados:", error);
+    return { success: false, error: error.message, courses: [] };
+  }
+}

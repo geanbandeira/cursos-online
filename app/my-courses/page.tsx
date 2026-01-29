@@ -1,16 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, BookOpen, Clock, Calendar, CheckCircle, GraduationCap, LogIn } from "lucide-react"
-import { getUserIdByEmail, getUserEnrolledCourses, getUserProgress } from "@/lib/course-actions"
+import { ArrowLeft, BookOpen, Clock, Calendar, CheckCircle, GraduationCap, LogIn, Sparkles } from "lucide-react"
+import { getUserIdByEmail, getUserEnrolledCourses, getUserProgress, getRecommendedCourses } from "@/lib/course-actions"
 import { format, formatDistanceToNow, parseISO } from "date-fns"
 import { ptBR } from 'date-fns/locale'
+// Localize seus imports e adicione:
 
 // Definimos um tipo para os cursos que vamos receber
 interface EnrolledCourse {
@@ -28,6 +29,7 @@ export default function MyCoursesPage() {
   const [totalCompletedLessons, setTotalCompletedLessons] = useState(0)
   const [totalCourseDuration, setTotalCourseDuration] = useState("0h 0min")
   const { user, loading: authLoading } = useAuth()
+  const [recommendedCourses, setRecommendedCourses] = useState<EnrolledCourse[]>([])
   const router = useRouter()
 
   // MOCK (Fallback): Se o dado real não estiver em user.lastLoginAt, usa 15 min atrás para desenvolvimento.
@@ -90,6 +92,30 @@ export default function MyCoursesPage() {
   };
 
   const { fullDate, greeting } = getFormattedDateAndGreeting();
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Só inicia o movimento se houver cursos recomendados
+    if (recommendedCourses.length === 0) return;
+
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+
+        // Se chegar no final, volta para o início suavemente
+        // Usamos -10 como margem de erro
+        if (scrollLeft + clientWidth >= scrollWidth - 10) {
+          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          // Rola para o lado o equivalente a um card (aprox 350px)
+          scrollRef.current.scrollBy({ left: 350, behavior: 'smooth' });
+        }
+      }
+    }, 9000); // Muda a cada 3 segundos
+
+    return () => clearInterval(interval);
+  }, [recommendedCourses]);
 
 
   // --- FUNÇÕES AUXILIARES DE CÁLCULO ---
@@ -173,6 +199,10 @@ export default function MyCoursesPage() {
           if (coursesResult.success) {
             const fetchedCourses = coursesResult.courses as EnrolledCourse[]
             setCourses(fetchedCourses)
+            const recResult = await getRecommendedCourses(userIdString)
+            if (recResult.success) {
+              setRecommendedCourses(recResult.courses as EnrolledCourse[])
+            }
 
             // --- CÁLCULO DAS ESTATÍSTICAS REAIS ---
             let completedCount = 0
@@ -319,7 +349,7 @@ export default function MyCoursesPage() {
                       </Button>
                     </Link>
 
-                
+
                   </div>
                 </CardContent>
 
@@ -338,19 +368,51 @@ export default function MyCoursesPage() {
           </div>
         )}
 
-        {/* INFORMAÇÃO DE ÚLTIMO LOGIN */}
-        <div className="w-full text-right mt-10">
-          <p className="text-xs text-gray-400 flex items-center justify-end">
-            <LogIn className="w-3 h-3 mr-1" />
-            Último acesso:
-            <span
-              className="text-gray-500 font-medium ml-1 cursor-help underline decoration-dotted underline-offset-2"
-              title={lastLoginDisplay.full} // Mostra data e hora exatas na tooltip
+        {/* --- CARROSSEL 2026: EXPLORAR NOVOS CURSOS --- */}
+        {recommendedCourses.length > 0 && (
+          <div className="mt-20 mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+              <Sparkles className="w-6 h-6 mr-2 text-orange-500 fill-orange-500" />
+              Expanda seus horizontes
+            </h2>
+
+            {/* Substitua a div de scroll por esta: */}
+            <div
+              ref={scrollRef}
+              className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x select-none scroll-smooth"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} // Garante que a barra suma em todos os navegadores
             >
-              {lastLoginDisplay.friendly} {/* Mostra "há X tempo" */}
-            </span>
-          </p>
-        </div>
+              {recommendedCourses.map((course) => (
+                <div key={course.id} className="min-w-[320px] snap-center">
+                  <Card className="bg-white/80 backdrop-blur-sm border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
+                    <div className="relative h-44 overflow-hidden">
+                      <img
+                        src={course.image_url || "/logonave.webp"}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        alt={course.title}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60" />
+                      <Badge className="absolute top-3 right-3 bg-blue-600 shadow-md">Novidade</Badge>
+                    </div>
+
+                    <CardContent className="p-5">
+                      <h3 className="font-bold text-lg mb-2 truncate text-gray-900">{course.title}</h3>
+                      <p className="text-gray-500 text-sm mb-4 line-clamp-2">{course.description}</p>
+
+                      <Link href={`/course/${course.id}`}>
+                        <Button className="w-full bg-[#00324F] hover:bg-orange-600 transition-colors py-5 text-white font-bold rounded-xl shadow-lg">
+                          Quero conhecer
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+
       </main>
     </div>
   )
