@@ -52,7 +52,7 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
                     <p className="font-black text-gray-900 leading-tight">
                       {user?.name?.split(" ")[0] || "Aluno"}
                     </p>
-                    <Badge variant="outline" className="text-[10px] mt-1 text-blue-600 border-blue-200 uppercase font-black">Premium</Badge>
+                    <Badge variant="outline" className="text-[10px] mt-1 text-blue-600 border-blue-200 uppercase font-black">Aluno Master</Badge>
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="rounded-full">
