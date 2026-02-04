@@ -114,7 +114,7 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
               >
                 <MessageCircle className="h-6 w-6 fill-white text-green-600" />
                 <span className="font-black text-lg">Suporte VIP</span>
-                <Badge className="ml-auto bg-white text-green-600 text-[10px] font-black">LIVE</Badge>
+                <Badge className="ml-auto bg-white text-green-600 text-[10px] font-black">ON</Badge>
               </a>
 
               {/* RETOMAR AULA Contextual */}
