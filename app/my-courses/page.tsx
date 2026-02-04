@@ -169,7 +169,7 @@ export default function MyCoursesPage() {
     { title: "Cursos Ativos", value: courses.length, icon: BookOpen, color: "text-blue-600", bgColor: "bg-blue-50" },
     { title: "Aulas Concluídas", value: totalCompletedLessons, icon: CheckCircle, color: "text-green-600", bgColor: "bg-green-50" },
     { title: "Total de Horas", value: totalCourseDuration, icon: Clock, color: "text-orange-600", bgColor: "bg-orange-50" },
-    { title: "Próxima Meta", value: "Evolução", icon: GraduationCap, color: "text-purple-600", bgColor: "bg-purple-50" },
+    { title: "Próxima Meta", value: "Certificado", icon: GraduationCap, color: "text-purple-600", bgColor: "bg-purple-50" },
   ]
 
   return (

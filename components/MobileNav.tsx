@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { usePathname, useRouter } from "next/navigation" // Importamos o roteador
+import { usePathname } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { 
   Menu, X, BookOpen, LogOut, Zap, Target, Library, Lock, MessageCircle 
@@ -18,7 +18,6 @@ interface MobileNavProps {
 export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavProps) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
-  const router = useRouter() // Inicializamos o router
   const { signOut, user } = useAuth()
 
   const isInsideCourse = pathname.includes("/course/")
@@ -27,22 +26,13 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
 
   const whatsappUrl = "https://wa.me/5511995702066" // Altere para o seu número
 
-  // FUNÇÃO DE NAVEGAÇÃO INTELIGENTE PARA 2026
-  const handleNavigate = (href: string) => {
-    // 1. O menu não fecha na hora, damos 100ms para o roteador registrar o destino
-    router.push(href);
-    setTimeout(() => {
-      setOpen(false);
-    }, 150);
-  }
-
   return (
     <>
       <Button 
         variant="ghost" 
         size="icon" 
         onClick={() => setOpen(true)} 
-        className="hover:bg-gray-100 z-[60] relative shrink-0"
+        className="hover:bg-gray-100 z-[60] relative"
       >
         <Menu className="h-9 w-9 text-[#00324F]" />
       </Button>
@@ -62,15 +52,15 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
                     <p className="font-black text-gray-900 leading-tight">
                       {user?.name?.split(" ")[0] || "Aluno"}
                     </p>
-                    <Badge variant="outline" className="text-[10px] mt-1 text-blue-600 border-blue-200">ALUNO MASTER</Badge>
+                    <Badge variant="outline" className="text-[10px] mt-1 text-blue-600 border-blue-200 uppercase font-black">Premium</Badge>
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="rounded-full">
-                  <X className="h-8 w-8" />
+                  <X className="h-8 w-8 text-gray-400" />
                 </Button>
               </div>
 
-              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 shadow-sm">
                 <div className="flex justify-between items-center mb-2 text-[10px] font-bold uppercase tracking-widest">
                   <span className="text-gray-500 flex items-center gap-1"><Target className="w-3 h-3" /> Meu Progresso</span>
                   <span className="text-[#00324F]">{progressPercentage}%</span>
@@ -79,61 +69,64 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
               </div>
             </div>
 
-            {/* Menu: Botões Grandes e Únicos */}
+            {/* Menu: Links Diretos (Tag <a>) para Navegação Forçada */}
             <nav className="flex-grow space-y-4">
               
               {/* MEUS CURSOS */}
-              <button 
-                onClick={() => handleNavigate('/my-courses')}
-                className={`w-full flex items-center gap-4 p-5 rounded-2xl transition-all active:scale-95 shadow-sm border-2 ${
-                  pathname === '/my-courses' ? 'bg-[#00324F] text-white border-[#00324F]' : 'bg-gray-50 text-gray-700 border-gray-100 hover:bg-gray-100'
+              <a 
+                href="/my-courses"
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-4 p-5 rounded-2xl transition-all shadow-sm border-2 ${
+                  pathname === '/my-courses' ? 'bg-[#00324F] text-white border-[#00324F]' : 'bg-gray-50 text-gray-700 border-gray-100'
                 }`}
               >
                 <BookOpen className="h-6 w-6" /> 
-                <span className="font-extrabold text-lg tracking-tight">Meus Cursos</span>
-              </button>
+                <span className="font-black text-lg">Meus Cursos</span>
+              </a>
 
-              {/* BIBLIOTECA (Azul) */}
-              <button 
-                onClick={() => handleNavigate('/materiais')}
-                className={`w-full flex items-center gap-4 p-5 rounded-2xl transition-all active:scale-95 shadow-sm border-2 ${
-                  pathname === '/materiais' ? 'bg-blue-600 text-white border-blue-600' : 'bg-blue-50 text-blue-800 border-blue-100 hover:bg-blue-200'
-                }`}
+              {/* BIBLIOTECA (Link Direto) */}
+              <a 
+                href="/materiais"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-4 p-5 rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200 border-2 border-blue-600 transition-all active:scale-95"
               >
                 <Library className="h-6 w-6" />
-                <span className="font-extrabold text-lg tracking-tight">Biblioteca</span>
-              </button>
+                <span className="font-black text-lg">Biblioteca</span>
+              </a>
               
-              {/* ALTERAR SENHA (Laranja) */}
-              <button 
-                onClick={() => handleNavigate('/auth/forgot-password')}
-                className="w-full flex items-center gap-4 p-5 rounded-2xl bg-orange-50 text-orange-800 border-2 border-orange-100 shadow-sm transition-all active:scale-95 hover:bg-orange-100"
+              {/* ALTERAR SENHA (Link Direto) */}
+              <a 
+                href="/auth/forgot-password"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-4 p-5 rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-200 border-2 border-orange-500 transition-all active:scale-95"
               >
                 <Lock className="h-6 w-6" />
-                <span className="font-extrabold text-lg tracking-tight">Alterar Senha</span>
-              </button>
+                <span className="font-black text-lg">Alterar Senha</span>
+              </a>
 
-              {/* SUPORTE WHATSAPP (Verde) */}
+              {/* SUPORTE WHATSAPP */}
               <a 
                 href={whatsappUrl} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="flex items-center gap-4 p-5 rounded-2xl bg-green-50 text-green-800 border-2 border-green-200 shadow-sm transition-all active:scale-95 hover:bg-green-100"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-4 p-5 rounded-2xl bg-green-600 text-white shadow-lg shadow-green-200 border-2 border-green-600 transition-all active:scale-95"
               >
-                <MessageCircle className="h-6 w-6 fill-green-600 text-green-600" />
-                <span className="font-extrabold text-lg tracking-tight">Suporte VIP</span>
-                <Badge className="ml-auto bg-green-600 text-[10px] animate-pulse">LIVE</Badge>
+                <MessageCircle className="h-6 w-6 fill-white text-green-600" />
+                <span className="font-black text-lg">Suporte VIP</span>
+                <Badge className="ml-auto bg-white text-green-600 text-[10px] font-black">LIVE</Badge>
               </a>
 
               {/* RETOMAR AULA Contextual */}
               {isInsideCourse && (
-                <button 
-                  onClick={() => handleNavigate(`/course/${courseId}`)}
-                  className="w-full flex items-center gap-4 p-5 rounded-2xl bg-black text-white shadow-xl transition-all active:scale-95"
+                <a 
+                  href={`/course/${courseId}`}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-4 p-5 rounded-2xl bg-black text-white shadow-xl border-2 border-black transition-all active:scale-95"
                 >
-                  <Zap className="h-6 w-6 fill-white" />
-                  <span className="font-extrabold text-lg tracking-tight">Voltar à Aula</span>
-                </button>
+                  <Zap className="h-6 w-6 fill-white text-white" />
+                  <span className="font-black text-lg">Voltar à Aula</span>
+                </a>
               )}
             </nav>
 
@@ -141,7 +134,7 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
             <div className="mt-8 pt-6 border-t border-gray-100">
               <Button 
                 variant="ghost" 
-                className="w-full justify-start gap-4 text-red-600 hover:bg-red-50 rounded-2xl py-8 transition-all active:scale-95" 
+                className="w-full justify-start gap-4 text-red-600 hover:bg-red-50 rounded-2xl py-8 transition-all" 
                 onClick={() => { signOut(); setOpen(false); }}
               >
                 <LogOut className="h-6 w-6" /> 
