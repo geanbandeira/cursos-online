@@ -227,3 +227,33 @@ export async function getRecommendedCourses(userId: string) {
     return { success: false, error: error.message, courses: [] };
   }
 }
+
+// lib/course-actions.ts
+
+export async function getAllEnrolledMaterials(userId: string) {
+  try {
+    console.log("[v0] Buscando TODOS os materiais para o usuário:", userId);
+    
+    // Busca materiais de todos os cursos onde o usuário tem matrícula
+    const result = await sql`
+      SELECT 
+        cm.id, 
+        cm.title, 
+        cm.file_url, 
+        cm.file_type, 
+        cm.file_size, 
+        c.title as course_name,
+        c.id as course_id
+      FROM course_materials cm
+      INNER JOIN enrollments e ON cm.course_id = e.course_id
+      INNER JOIN courses c ON cm.course_id = c.id
+      WHERE e.user_id = ${Number.parseInt(userId)}
+      ORDER BY c.title ASC, cm.id DESC
+    `;
+    
+    return { success: true, materials: result };
+  } catch (error: any) {
+    console.error("[v0] Erro ao buscar todos os materiais:", error);
+    return { success: false, materials: [], error: error.message };
+  }
+}

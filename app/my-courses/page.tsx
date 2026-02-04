@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/contexts/AuthContext"
+import { MobileNav } from "@/components/MobileNav"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -11,9 +12,8 @@ import { ArrowLeft, BookOpen, Clock, Calendar, CheckCircle, GraduationCap, LogIn
 import { getUserIdByEmail, getUserEnrolledCourses, getUserProgress, getRecommendedCourses } from "@/lib/course-actions"
 import { format, formatDistanceToNow, parseISO } from "date-fns"
 import { ptBR } from 'date-fns/locale'
-// Localize seus imports e adicione:
 
-// Definimos um tipo para os cursos que vamos receber
+
 interface EnrolledCourse {
   id: number
   title: string
@@ -27,161 +27,55 @@ export default function MyCoursesPage() {
   const [courses, setCourses] = useState<EnrolledCourse[]>([])
   const [loading, setLoading] = useState(true)
   const [totalCompletedLessons, setTotalCompletedLessons] = useState(0)
+  const [totalLessonsCount, setTotalLessonsCount] = useState(0) // Estado para o total real de aulas
   const [totalCourseDuration, setTotalCourseDuration] = useState("0h 0min")
   const { user, loading: authLoading } = useAuth()
   const [recommendedCourses, setRecommendedCourses] = useState<EnrolledCourse[]>([])
   const router = useRouter()
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  // MOCK (Fallback): Se o dado real não estiver em user.lastLoginAt, usa 15 min atrás para desenvolvimento.
-  const rawLastLoginAt = user?.lastLoginAt || new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  const rawLastLoginAt = user?.lastLoginAt || new Date(Date.now() - 15 * 60 * 1000).toISOString()
+  const [lastLoginDisplay, setLastLoginDisplay] = useState({ full: "Aguardando...", friendly: "..." })
 
-  // NOVO ESTADO: Armazena a exibição formatada do último login
-  const [lastLoginDisplay, setLastLoginDisplay] = useState({ full: "Aguardando...", friendly: "..." });
-
-
-  // --- FUNÇÃO E HOOK PARA ATUALIZAR O ÚLTIMO ACESSO A CADA MINUTO ---
+  // --- ATUALIZAÇÃO DO ÚLTIMO ACESSO ---
   useEffect(() => {
     const updateTimeDisplay = () => {
       if (rawLastLoginAt && rawLastLoginAt !== 'Data indisponível') {
-        const date = parseISO(rawLastLoginAt);
-        // Formato longo para a tooltip (data e hora exatas)
-        const fullDate = format(date, "EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR });
-        // Formato amigável (há X tempo)
-        const friendlyDistance = formatDistanceToNow(date, { addSuffix: true, locale: ptBR });
-
+        const date = parseISO(rawLastLoginAt)
+        const fullDate = format(date, "EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })
+        const friendlyDistance = formatDistanceToNow(date, { addSuffix: true, locale: ptBR })
         setLastLoginDisplay({
           full: fullDate.charAt(0).toUpperCase() + fullDate.slice(1),
           friendly: friendlyDistance
-        });
+        })
       }
-    };
-
-    updateTimeDisplay(); // Roda imediatamente ao carregar
-
-    // Roda a cada 60 segundos (1 minuto) para manter o tempo relativo atualizado
-    const timer = setInterval(updateTimeDisplay, 60000);
-
-    return () => clearInterval(timer);
-  }, [rawLastLoginAt]); // Re-executa quando o dado de login (user.lastLoginAt) é carregado
-  // ------------------------------------------------------------------
-
-  // Função para formatar a data por extenso e calcular saudação
-  const getFormattedDateAndGreeting = () => {
-    const today = new Date();
-    // Formatação da data por extenso (Dia da semana, XX de mês)
-    const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
-      weekday: 'long',
-      day: '2-digit',
-      month: 'long',
-    });
-    // Formata e capitaliza a primeira letra do dia da semana
-    const fullDate = dateFormatter.format(today).replace(/\s/g, ' ').replace(/,$/, '');
-    const finalDate = fullDate.charAt(0).toUpperCase() + fullDate.slice(1);
-
-    const currentHour = today.getHours();
-    let greeting = "Olá";
-    if (currentHour >= 6 && currentHour < 12) {
-      greeting = "Bom dia";
-    } else if (currentHour >= 12 && currentHour < 18) {
-      greeting = "Boa tarde";
-    } else {
-      greeting = "Boa noite";
     }
+    updateTimeDisplay()
+    const timer = setInterval(updateTimeDisplay, 60000)
+    return () => clearInterval(timer)
+  }, [rawLastLoginAt])
 
-    return { fullDate: finalDate, greeting };
-  };
-
-  const { fullDate, greeting } = getFormattedDateAndGreeting();
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-
+  // --- CARROSSEL AUTOMÁTICO ---
   useEffect(() => {
-    // Só inicia o movimento se houver cursos recomendados
-    if (recommendedCourses.length === 0) return;
-
+    if (recommendedCourses.length === 0) return
     const interval = setInterval(() => {
       if (scrollRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-
-        // Se chegar no final, volta para o início suavemente
-        // Usamos -10 como margem de erro
+        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
         if (scrollLeft + clientWidth >= scrollWidth - 10) {
-          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' })
         } else {
-          // Rola para o lado o equivalente a um card (aprox 350px)
-          scrollRef.current.scrollBy({ left: 350, behavior: 'smooth' });
+          scrollRef.current.scrollBy({ left: 350, behavior: 'smooth' })
         }
       }
-    }, 9000); // Muda a cada 3 segundos
+    }, 5000) // 5 segundos para uma leitura confortável
+    return () => clearInterval(interval)
+  }, [recommendedCourses])
 
-    return () => clearInterval(interval);
-  }, [recommendedCourses]);
-
-
-  // --- FUNÇÕES AUXILIARES DE CÁLCULO ---
-  const parseDurationToMinutes = (duration: string): number => {
-    let totalMinutes = 0
-    if (!duration) return 0
-
-    const parts = duration.match(/(\d+)\s*(h|min)/g)
-    if (!parts) return 0
-
-    parts.forEach(part => {
-      const value = parseInt(part.match(/\d+/)?.[0] || '0')
-      if (part.includes('h')) {
-        totalMinutes += value * 60
-      } else if (part.includes('min')) {
-        totalMinutes += value
-      }
-    })
-    return totalMinutes
-  }
-
-  const formatMinutesToHoursAndMinutes = (totalMinutes: number): string => {
-    const hours = Math.floor(totalMinutes / 60)
-    const minutes = totalMinutes % 60
-    return `${hours}h ${minutes}min`
-  }
-  // ------------------------------------
-
-  // DEFINIÇÃO DAS ESTATÍSTICAS
-  const stats = [
-    {
-      title: "Cursos Ativos",
-      value: courses.length,
-      icon: BookOpen,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
-    },
-    {
-      title: "Aulas Concluídas",
-      value: totalCompletedLessons,
-      icon: CheckCircle,
-      color: "text-green-600",
-      bgColor: "bg-green-50"
-    },
-    {
-      title: "Total de Horas",
-      value: totalCourseDuration,
-      icon: Clock,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50"
-    },
-    {
-      title: "Próxima Meta",
-      value: "Certificação",
-      icon: GraduationCap,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50"
-    },
-  ];
-
+  // --- LÓGICA DE BUSCA DE DADOS REAIS ---
   useEffect(() => {
-    if (authLoading) {
-      return
-    }
+    if (authLoading) return
 
-    const fetchEnrolledCourses = async () => {
+    const fetchAllData = async () => {
       if (!user) {
         router.push("/auth/login")
         setLoading(false)
@@ -190,220 +84,171 @@ export default function MyCoursesPage() {
 
       try {
         const userResult = await getUserIdByEmail(user.email)
-
         if (userResult.success && userResult.userId) {
-          const userIdString = userResult.userId.toString(); // ID do usuário
+          const userIdString = userResult.userId.toString()
 
+          // 1. Cursos matriculados
           const coursesResult = await getUserEnrolledCourses(userIdString)
-
           if (coursesResult.success) {
             const fetchedCourses = coursesResult.courses as EnrolledCourse[]
             setCourses(fetchedCourses)
-            const recResult = await getRecommendedCourses(userIdString)
-            if (recResult.success) {
-              setRecommendedCourses(recResult.courses as EnrolledCourse[])
-            }
 
-            // --- CÁLCULO DAS ESTATÍSTICAS REAIS ---
-            let completedCount = 0
-            let totalMinutes = 0
+            let completedSum = 0
+            let totalSum = 0
+            let totalMin = 0
 
+            // BUSCA O PROGRESSO REAL DE CADA CURSO
             await Promise.all(fetchedCourses.map(async (course) => {
-              // 1. Duração total (soma)
-              totalMinutes += parseDurationToMinutes(course.total_duration)
-
-              // 2. Aulas concluídas (soma, chamando a função para cada curso)
+              totalMin += parseDurationToMinutes(course.total_duration)
               const progressResult = await getUserProgress(userIdString, course.id)
               if (progressResult.success && progressResult.progress) {
-                completedCount += progressResult.progress.completed
+                completedSum += progressResult.progress.completed //
+                totalSum += progressResult.progress.total //
               }
             }))
 
-            setTotalCompletedLessons(completedCount)
-            setTotalCourseDuration(formatMinutesToHoursAndMinutes(totalMinutes))
-            // ------------------------------------
+            setTotalCompletedLessons(completedSum)
+            setTotalLessonsCount(totalSum)
+            setTotalCourseDuration(formatMinutesToHoursAndMinutes(totalMin))
+          }
+
+          // 2. Recomendações
+          const recResult = await getRecommendedCourses(userIdString)
+          if (recResult.success) {
+            setRecommendedCourses(recResult.courses as EnrolledCourse[])
           }
         }
       } catch (error) {
-        console.error("Erro ao buscar 'Meus Cursos' ou progresso:", error)
+        console.error("Erro no fetch de dados:", error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchEnrolledCourses()
+    fetchAllData()
   }, [user, router, authLoading])
 
+  // --- FUNÇÕES AUXILIARES ---
+  const parseDurationToMinutes = (duration: string): number => {
+    if (!duration) return 0
+    const parts = duration.match(/(\d+)\s*(h|min)/g)
+    if (!parts) return 0
+    let total = 0
+    parts.forEach(p => {
+      const val = parseInt(p.match(/\d+/)?.[0] || '0')
+      if (p.includes('h')) total += val * 60
+      else if (p.includes('min')) total += val
+    })
+    return total
+  }
+
+  const formatMinutesToHoursAndMinutes = (min: number): string => {
+    return `${Math.floor(min / 60)}h ${min % 60}min`
+  }
+
+  const getFormattedDateAndGreeting = () => {
+    const today = new Date()
+    const dateStr = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(today)
+    const finalDate = dateStr.charAt(0).toUpperCase() + dateStr.slice(1)
+    const hour = today.getHours()
+    const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite"
+    return { fullDate: finalDate, greeting }
+  }
+
+  const { fullDate, greeting } = getFormattedDateAndGreeting()
 
   if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#00324F]"></div>
-          <p className="mt-4 text-gray-600">Buscando seus cursos...</p>
-        </div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00324F]"></div>
       </div>
     )
   }
 
-  // Renderizar a página
+  const stats = [
+    { title: "Cursos Ativos", value: courses.length, icon: BookOpen, color: "text-blue-600", bgColor: "bg-blue-50" },
+    { title: "Aulas Concluídas", value: totalCompletedLessons, icon: CheckCircle, color: "text-green-600", bgColor: "bg-green-50" },
+    { title: "Total de Horas", value: totalCourseDuration, icon: Clock, color: "text-orange-600", bgColor: "bg-orange-50" },
+    { title: "Próxima Meta", value: "Evolução", icon: GraduationCap, color: "text-purple-600", bgColor: "bg-purple-50" },
+  ]
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Simples */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Link href="/">
-                <Button variant="ghost" className="flex items-center space-x-2">
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Voltar</span>
-                </Button>
-              </Link>
-              <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/design-mode-images/oie_xpWiKNePpcq7%281%29%281%29%281%29-gE6tp7np2qnWofuIkwOVfK46eagnCh.png"
-                alt="Master Project"
-                className="h-6 w-auto"
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center space-x-6">
+              {/* MENU COM PROGRESSO REAL */}
+              <MobileNav 
+                completedLessons={totalCompletedLessons} 
+                totalLessons={totalLessonsCount} 
               />
+              <Link href="/">
+                <img
+                  src="/logo-master-project.png"
+                  alt="Master Project"
+                  className="h-14 sm:h-16 w-auto transition-transform hover:scale-105"
+                />
+              </Link>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* SEÇÃO DE HEADER DINÂMICO E DATA ATUAL (sem hora) */}
         <div className="mb-10 p-6 bg-white rounded-xl shadow-lg border border-gray-100">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-0">
-              {greeting}, {user?.name || "Aluno(a)"}!
-            </h1>
-            <div className="text-left sm:text-right flex flex-col items-start sm:items-end space-y-1">
-              <div className="flex items-center text-gray-600 text-sm sm:text-base">
-                <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                <span>{fullDate}</span>
-              </div>
-            </div>
+          <h1 className="text-3xl font-bold text-gray-900">{greeting}, {user?.name || "Aluno(a)"}!</h1>
+          <div className="flex items-center text-gray-500 mt-2">
+            <Calendar className="w-4 h-4 mr-2" /> <span>{fullDate}</span>
           </div>
-          <p className="text-lg text-gray-600 mt-2">
-            Acesse seus cursos e continue de onde parou.
-          </p>
         </div>
 
-        {/* CARTÕES DE ESTATÍSTICAS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {stats.map((stat, index) => (
-            <Card key={index} className="flex flex-row items-center p-4 border-0 shadow-md transition-shadow duration-300 hover:shadow-xl">
-              <div className={`p-3 rounded-full ${stat.bgColor} ${stat.color} mr-4`}>
-                <stat.icon className="w-6 h-6" />
-              </div>
+          {stats.map((s, i) => (
+            <Card key={i} className="flex flex-row items-center p-4 border-0 shadow-md">
+              <div className={`p-3 rounded-full ${s.bgColor} ${s.color} mr-4`}><s.icon className="w-6 h-6" /></div>
               <div>
-                <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-                <CardTitle className="text-xl font-bold text-gray-900 mt-1">
-                  {stat.value}
-                </CardTitle>
+                <p className="text-sm font-medium text-gray-500">{s.title}</p>
+                <CardTitle className="text-xl font-bold">{s.value}</CardTitle>
               </div>
             </Card>
           ))}
         </div>
 
-        {/* Grid de Cursos */}
-        {courses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {courses.map((course) => (
-              <Card
-                key={course.id}
-                className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 flex flex-col h-full"
-              >
-                <div className="h-48 w-full overflow-hidden rounded-t-xl">
-                  <img
-                    src={course.image_url || "/placeholder.jpg"}
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Meus Cursos</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+          {courses.map((course) => (
+            <Card key={course.id} className="bg-white shadow-lg border-0 overflow-hidden flex flex-col h-full">
+              <img src={course.image_url || "/placeholder.jpg"} className="h-48 w-full object-cover" alt={course.title} />
+              <CardHeader>
+                <div className="flex justify-between mb-2">
+                  <Badge variant="secondary">{course.level}</Badge>
+                  <span className="text-sm text-gray-500">{course.total_duration}</span>
                 </div>
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="secondary">{course.level}</Badge>
-                    <span className="text-sm text-gray-500">{course.total_duration}</span>
-                  </div>
-                  <CardTitle className="text-xl font-bold text-gray-900 leading-tight">
-                    {course.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 flex-grow flex flex-col">
-                  <CardDescription className="text-gray-600 mb-6 leading-relaxed flex-grow">
-                    {course.description}
-                  </CardDescription>
-                  <Link href={`/course/${course.id}`} className="w-full cursor-pointer mt-auto">
-                    <Button className="w-full bg-[#00324F] hover:bg-[#004066] text-white font-medium py-3 px-4 rounded-lg transition duration-200 cursor-pointer">
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      Acessar Curso
-                    </Button>
-                  </Link> <br />
+                <CardTitle className="text-xl font-bold">{course.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow flex flex-col">
+                <CardDescription className="line-clamp-2 mb-6">{course.description}</CardDescription>
+                <div className="mt-auto space-y-2">
+                  <Link href={`/course/${course.id}`}><Button className="w-full bg-[#00324F]"><BookOpen className="w-4 h-4 mr-2" /> Acessar</Button></Link>
+                  <Link href={`/course/${course.id}/materiais`}><Button variant="outline" className="w-full">Materiais</Button></Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-                  <div className="flex flex-col gap-2 mt-auto">
-                    <Link href={`/course/${course.id}/materiais`} className="flex-1">
-                      <Button className="w-full bg-[#2E2E2E] hover:bg-[#3A3A3A] text-white">
-                        <BookOpen className="w-4 h-4 mr-2" /> Obter materiais
-                      </Button>
-                    </Link>
-
-
-                  </div>
-                </CardContent>
-
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center bg-white p-12 rounded-lg shadow-md border">
-            <h2 className="text-2xl font-semibold text-gray-800">Você ainda não se matriculou em nenhum curso</h2>
-            <p className="text-gray-600 mt-2 mb-6">Explore nosso catálogo e comece a aprender hoje mesmo!</p>
-            <Link href="/">
-              <Button className="bg-[#00324F] hover:bg-[#004066] text-white">
-                Ver Todos os Cursos
-              </Button>
-            </Link>
-          </div>
-        )}
-
-        {/* --- CARROSSEL 2026: EXPLORAR NOVOS CURSOS --- */}
         {recommendedCourses.length > 0 && (
-          <div className="mt-20 mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <Sparkles className="w-6 h-6 mr-2 text-orange-500 fill-orange-500" />
-              Expanda seus horizontes
-            </h2>
-
-            {/* Substitua a div de scroll por esta: */}
-            <div
-              ref={scrollRef}
-              className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x select-none scroll-smooth"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} // Garante que a barra suma em todos os navegadores
-            >
-              {recommendedCourses.map((course) => (
-                <div key={course.id} className="min-w-[320px] snap-center">
-                  <Card className="bg-white/80 backdrop-blur-sm border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
-                    <div className="relative h-44 overflow-hidden">
-                      <img
-                        src={course.image_url || "/logonave.webp"}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        alt={course.title}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60" />
-                      <Badge className="absolute top-3 right-3 bg-blue-600 shadow-md">Novidade</Badge>
-                    </div>
-
+          <div className="mt-20">
+            <h2 className="text-2xl font-bold mb-6 flex items-center"><Sparkles className="w-6 h-6 mr-2 text-orange-500" /> Expanda seus horizontes</h2>
+            <div ref={scrollRef} className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x scroll-smooth" style={{ scrollbarWidth: 'none' }}>
+              {recommendedCourses.map((c) => (
+                <div key={c.id} className="min-w-[320px] snap-center">
+                  <Card className="hover:shadow-2xl transition-all border-gray-100 overflow-hidden">
+                    <img src={c.image_url || "/logonave.webp"} className="h-44 w-full object-cover" alt={c.title} />
                     <CardContent className="p-5">
-                      <h3 className="font-bold text-lg mb-2 truncate text-gray-900">{course.title}</h3>
-                      <p className="text-gray-500 text-sm mb-4 line-clamp-2">{course.description}</p>
-
-                      <Link href={`/course/${course.id}`}>
-                        <Button className="w-full bg-[#00324F] hover:bg-orange-600 transition-colors py-5 text-white font-bold rounded-xl shadow-lg">
-                          Quero conhecer
-                        </Button>
-                      </Link>
+                      <h3 className="font-bold text-lg mb-2 truncate">{c.title}</h3>
+                      <Link href={`/course/${c.id}`}><Button className="w-full bg-[#00324F] py-5 font-bold rounded-xl">Quero conhecer</Button></Link>
                     </CardContent>
                   </Card>
                 </div>
@@ -412,7 +257,9 @@ export default function MyCoursesPage() {
           </div>
         )}
 
-
+        <div className="w-full text-right mt-10 text-xs text-gray-400">
+          <LogIn className="inline w-3 h-3 mr-1" /> Último acesso: <span title={lastLoginDisplay.full}>{lastLoginDisplay.friendly}</span>
+        </div>
       </main>
     </div>
   )

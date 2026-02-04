@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
-import { Eye, EyeOff, ArrowLeft } from "lucide-react"
+import { Eye, EyeOff, ArrowLeft, UserPlus } from "lucide-react"
 import { signInAction, getUserFromToken } from "@/lib/auth-actions"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
@@ -134,14 +134,35 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Não tem uma conta?{" "}
-                <Link href="/auth/register" className="text-[#00324F] hover:text-[#004066] font-medium cursor-pointer">
-                  Cadastre-se
-                </Link>
-              </p>
-            </div>
+            {/* --- SEÇÃO "MEU PRIMEIRO ACESSO" PADRÃO 2026 --- */}
+<div className="mt-8 space-y-6">
+  {/* Separador Elegante */}
+  <div className="relative">
+    <div className="absolute inset-0 flex items-center">
+      <span className="w-full border-t border-gray-200"></span>
+    </div>
+    <div className="relative flex justify-center text-xs uppercase">
+      <span className="bg-white px-4 text-gray-400 font-semibold tracking-widest">
+        Novo por aqui?
+      </span>
+    </div>
+  </div>
+
+  {/* Botão Chamativo e Moderno */}
+  <Link href="/auth/register" className="block w-full group">
+    <Button
+      variant="outline"
+      className="w-full py-7 border-2 border-[#00324F] text-[#00324F] hover:bg-[#00324F] hover:text-white transition-all duration-500 rounded-2xl font-black text-lg gap-3 shadow-sm hover:shadow-xl hover:-translate-y-1 active:scale-95"
+    >
+      <UserPlus className="w-6 h-6 transition-transform group-hover:scale-125" />
+      Meu primeiro acesso
+    </Button>
+  </Link>
+  
+  <p className="text-center text-xs text-gray-400">
+    Crie sua conta em menos de 1 minuto e comece a estudar.
+  </p>
+</div>
           </CardContent>
         </Card>
       </div>
