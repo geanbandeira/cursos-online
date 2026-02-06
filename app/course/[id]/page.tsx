@@ -894,7 +894,6 @@ export default function CoursePage() {
             🚀 Acesso Total Liberado
           </h3>
           <p className="text-blue-100/80 text-lg font-medium">
-            Você está assistindo às aulas de demonstração. <br/>
             Crie sua conta grátis para desbloquear o curso completo.
           </p>
         </div>
