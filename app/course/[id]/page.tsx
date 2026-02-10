@@ -950,7 +950,7 @@ export default function CoursePage() {
                 </div>
                 <div className="flex items-center space-x-4 mt-4 text-sm text-gray-500">
                   <span>
-                    Aula {selectedLesson.lesson_order} de {lessons.length}
+                    Aula {selectedLesson.lesson_order}
                   </span>
                   {selectedLesson.is_preview && (
                     <Badge className="bg-blue-100 text-blue-800">Preview Gratuito</Badge>
