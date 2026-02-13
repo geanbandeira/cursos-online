@@ -2,6 +2,7 @@
 
 import { sql } from "@/lib/database"
 
+
 export async function checkUserEnrollment(userId: string, courseId: number) {
   try {
     console.log("[v0] Verificando matrícula - userId:", userId, "courseId:", courseId)
@@ -255,5 +256,47 @@ export async function getAllEnrolledMaterials(userId: string) {
   } catch (error: any) {
     console.error("[v0] Erro ao buscar todos os materiais:", error);
     return { success: false, materials: [], error: error.message };
+  }
+}
+
+// Busca usuários com detalhes de matrícula e progresso para o Admin
+export async function getAdminUsersDetailedAction() {
+  try {
+    const users = await sql`
+      SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.created_at,
+      (SELECT JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'course_id', e.course_id,
+            'title', c.title,
+            'progress', e.progress,
+            'enrolled_at', e.enrolled_at
+          )
+        )
+        FROM enrollments e
+        JOIN courses c ON e.course_id = c.id
+        WHERE e.user_id = u.id
+      ) as enrollments
+      FROM users u
+      ORDER BY u.created_at DESC
+    `;
+    
+    return { success: true, users };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Busca os certificados de um usuário específico
+export async function getUserCertificatesAction(userId: number) {
+  try {
+    const result = await sql`
+      SELECT cert.*, c.title as course_title 
+      FROM certificates cert
+      JOIN courses c ON cert.course_id = c.id
+      WHERE cert.user_id = ${userId}
+    `;
+    return { success: true, certificates: result };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }

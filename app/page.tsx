@@ -336,7 +336,8 @@ export default function HomePage() {
                     </div>
                     <div className="price-installments">ou 3x de R$ 277,66</div>
                   </div>
-                  <a href="/course/6" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 3 Aulas Grátis</a>
+                  <a href="/course/6" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Assistir 3 
+                  s Grátis</a>
                   <br /> <br />
                   <a href="https://pag.ae/814jwrcpr" className="cta-button" style={{ width: '100%', textAlign: 'center' }}>Comprar Agora</a>
                 </div>

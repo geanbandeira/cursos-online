@@ -67,21 +67,42 @@ export async function saveUserToDatabase(email: string, name: string) {
 
 export async function getAllUsers(adminEmail: string) {
   try {
-    // 1. Verifica se quem está pedindo é admin
+    // 1. Verifica permissão de admin
     const adminCheck = await query("SELECT role FROM users WHERE email = ?", [adminEmail]);
-    
     if (!adminCheck.rows[0] || adminCheck.rows[0].role !== 'admin') {
       throw new Error("Acesso não autorizado");
     }
 
-    // 2. Só então busca todos os usuários
+    // 2. Busca usuários com seus cursos e progressos agrupados
     const result = await query(
-      "SELECT id, email, first_name, last_name, is_active, role, created_at FROM users ORDER BY created_at DESC",
+      `SELECT 
+        u.id, u.email, u.first_name, u.last_name, u.role, u.created_at,
+        (
+          SELECT JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'course_id', e.course_id,
+              'title', c.title,
+              'progress', e.progress
+            )
+          )
+          FROM enrollments e
+          JOIN courses c ON e.course_id = c.id
+          WHERE e.user_id = u.id
+        ) as enrollments_data
+      FROM users u 
+      ORDER BY u.created_at DESC`,
       []
     );
-    return { success: true, users: result.rows };
+
+    // Formata o resultado para o frontend
+    const users = result.rows.map(u => ({
+      ...u,
+      enrollments: u.enrollments_data ? (typeof u.enrollments_data === 'string' ? JSON.parse(u.enrollments_data) : u.enrollments_data) : []
+    }));
+
+    return { success: true, users };
   } catch (error: any) {
-    console.error("[v0] Erro ao buscar usuários:", error.message);
+    console.error("Erro ao buscar usuários:", error.message);
     return { success: false, error: error.message };
   }
 }
