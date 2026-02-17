@@ -31,9 +31,16 @@ export default function MaterialsPage() {
     load();
   }, [id]);
 
-  // Novo jeito: Chama o nosso próprio servidor para baixar
-  const handleDownload = (url: string, title: string) => {
-    const fileName = title.endsWith('.pdf') ? title : `${title}.pdf`;
+  const handleDownload = (url: string, title: string, fileType: string) => {
+    // Define a extensão baseada no tipo do banco ('zip' ou 'pdf')
+    const extension = fileType.toLowerCase() === 'zip' ? '.zip' : '.pdf';
+
+    // Garante que o nome do arquivo tenha a extensão correta
+    const fileName = title.toLowerCase().endsWith(extension)
+      ? title
+      : `${title}${extension}`;
+
+    // Chama a API de download
     window.location.href = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName)}`;
   };
 
@@ -65,7 +72,7 @@ export default function MaterialsPage() {
                   </div>
 
                   <Button
-                    onClick={() => handleDownload(m.file_url, m.title)}
+                    onClick={() => handleDownload(m.file_url, m.title, m.file_type)} // Enviando o tipo aqui
                     className="bg-[#00324F] hover:bg-[#004066] cursor-pointer"
                   >
                     <Download className="h-4 w-4" />
