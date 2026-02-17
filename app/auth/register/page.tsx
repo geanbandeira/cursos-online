@@ -20,6 +20,7 @@ export default function RegisterPage() {
     phone: "",
     password: "",
     confirmPassword: "",
+    website: "",
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -77,6 +78,13 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Se o campo 'website' estiver preenchido, ignoramos o bot silenciosamente
+    if (formData.website) {
+      console.log("Bot detectado!");
+      router.push("/auth/login"); // Redireciona sem criar conta
+      return;
+    }
     setError("")
 
     if (!validateForm()) return
@@ -103,9 +111,15 @@ export default function RegisterPage() {
   }
 
   return (
+
+
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header com logo e voltar */}
+
+        <div className="hidden">
+          <input name="website" type="text" onChange={handleInputChange} tabIndex={-1} autoComplete="off" />
+        </div>
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center text-[#00324F] hover:text-[#004066] mb-4 cursor-pointer">
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -132,6 +146,19 @@ export default function RegisterPage() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
+
+              {/* Campo invisível para humanos, mas visível para bots */}
+              <div className="hidden" aria-hidden="true">
+                <Input
+                  id="website"
+                  name="website"
+                  type="text"
+                  value={formData.website}
+                  onChange={handleInputChange}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="name">Nome completo *</Label>
