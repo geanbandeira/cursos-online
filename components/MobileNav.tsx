@@ -166,7 +166,7 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
             <div className="mt-8 pt-6 border-t border-gray-100">
               <Button 
                 variant="ghost" 
-                className="w-full justify-start gap-4 text-red-600 hover:bg-red-50 rounded-2xl py-8 transition-all" 
+                className="w-full justify-start gap-4 text-gray-600 hover:bg-red-50 rounded-2xl py-8 transition-all" 
                 onClick={() => { signOut(); setOpen(false); }}
               >
                 <LogOut className="h-6 w-6" /> 
