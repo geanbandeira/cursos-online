@@ -196,7 +196,7 @@ export default function HomePage() {
               <div className="course-card">
                 <a href="https://masterproject.com.br/curso/analise-negocio-bpm.html" style={{ textDecoration: 'none', display: 'block' }}>
                   {/* Estilos inline são convertidos para objetos JS */}
-                  <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')" }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://masterproject.com.br/capas/BPM.jpg')" }}>
                     <span className="course-badge">Gestão & Negócios</span>
                   </div>
                 </a>
@@ -229,7 +229,7 @@ export default function HomePage() {
               {/* Curso 2: BPMN com Bizagi */}
               <div className="course-card">
                 <a href="https://masterproject.com.br/curso/bpmn-bizagi.html" style={{ textDecoration: 'none', display: 'block' }}>
-                  <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')" }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://masterproject.com.br/capas/BPMN.jpg')" }}>
                     <span className="course-badge">Processos & Modelagem</span>
                   </div>
                 </a>
@@ -258,7 +258,7 @@ export default function HomePage() {
               {/* Curso 3: Jira Software */}
               <div className="course-card">
                 <a href="https://masterproject.com.br/curso/jira-software.html" style={{ textDecoration: 'none', display: 'block' }}>
-                  <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1547658719-da2b51169166?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1064&q=80')" }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://masterproject.com.br/capas/Jira.jpg')" }}>
                     <span className="course-badge">Ferramentas & Tecnologia</span>
                   </div>
                 </a>
@@ -287,7 +287,7 @@ export default function HomePage() {
               {/* Curso 4: Gerenciamento de Projetos PMI - Iniciação ao Planejamento */}
               <div className="course-card">
                 <a href="https://masterproject.com.br/curso/gerenciamento-projetos-pmi-iniciacao.html" style={{ textDecoration: 'none', display: 'block' }}>
-                  <div className="course-image" style={{ backgroundImage: "url('https://plus.unsplash.com/premium_photo-1725400817468-ddb0135d865d?fm=jpg&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cHJvamVjdCUyMG1hbmFnZXJ8ZW58MHx8MHx8fDA%3D&ixlib=rb-4.1.0&q=60&w=3000')" }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://masterproject.com.br/capas/PMI-Iniciacao.jpg')" }}>
                     <span className="course-badge">Gestão & Liderança</span>
                   </div>
                 </a>
@@ -316,7 +316,7 @@ export default function HomePage() {
               {/* Curso 5: Gerenciamento de Projetos PMI - Planejamento Avançado */}
               <div className="course-card">
                 <a href="https://masterproject.com.br/curso/gerenciamento-projetos-pmi-avancado.html" style={{ textDecoration: 'none', display: 'block' }}>
-                  <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1115&q=80')" }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://masterproject.com.br/capas/PMI-Planejamento.jpg')" }}>
                     <span className="course-badge">Gestão & Liderança</span>
                   </div>
                 </a>
@@ -346,7 +346,7 @@ export default function HomePage() {
               {/* Curso 6: Gerenciamento de Projetos PMI - Execução, Monitoramento e Controle */}
               <div className="course-card">
                 <a href="https://masterproject.com.br/curso/gerenciamento-projetos-pmi-execucao.html" style={{ textDecoration: 'none', display: 'block' }}>
-                  <div className="course-image" style={{ backgroundImage: "url('https://plus.unsplash.com/premium_photo-1658506729016-b0beeebda208?q=80&w=417&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://masterproject.com.br/capas/PMI-Execucao.jpg')" }}>
                     <span className="course-badge">Gestão & Liderança</span>
                   </div>
                 </a>
@@ -375,7 +375,7 @@ export default function HomePage() {
               {/* Curso 7: Dominando OKR */}
               <div className="course-card">
                 <a href="https://masterproject.com.br/curso/OKR.html" style={{ textDecoration: 'none', display: 'block' }}>
-                  <div className="course-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')" }}>
+                  <div className="course-image" style={{ backgroundImage: "url('https://masterproject.com.br/capas/OKR.jpg')" }}>
                     <span className="course-badge">Metodologias Ágeis</span>
                   </div>
                 </a>
