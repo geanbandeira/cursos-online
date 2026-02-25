@@ -684,14 +684,15 @@ export default function CoursePage() {
 
         {/* Perfil do Aluno Minimimalista */}
         {user && (
-          <div className="flex items-center gap-3 bg-gray-50 p-2 pr-4 rounded-2xl border border-gray-100">
-            <div className="w-9 h-9 rounded-xl bg-[#00324F] flex items-center justify-center text-white font-black">
-              {user.name[0]}
-            </div>
-            <span className="hidden xl:inline text-xs font-black text-gray-800 uppercase">
-              {user.name.split(" ")[0]}
-            </span>
-          </div>
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-200">
+  {user?.avatar_url ? (
+    <img src={user.avatar_url} className="w-full h-full object-cover" />
+  ) : (
+    <span className="flex items-center justify-center h-full font-bold">
+      {user?.name?.[0]}
+    </span>
+  )}
+</div>
         )}
       </div>
     </div>

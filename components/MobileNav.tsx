@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
-import { 
-  Menu, X, BookOpen, LogOut, Zap, Target, Library, Lock, MessageCircle 
+import {
+  Menu, X, BookOpen, LogOut, Zap, Target, Library, Lock, MessageCircle, User
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -36,10 +36,10 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
 
   return (
     <>
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        onClick={() => setOpen(true)} 
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setOpen(true)}
         className="hover:bg-gray-100 z-[60] relative"
         style={{ color: colors.primary }}
       >
@@ -48,27 +48,34 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
 
       {open && (
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div 
+          <div
             className="fixed inset-y-0 left-0 w-full max-w-[320px] z-[110] shadow-2xl p-6 flex flex-col animate-in slide-in-from-left duration-500 overflow-y-auto"
             style={{ backgroundColor: colors.background }}
           >
-            
+
             {/* Header: Perfil e Progresso */}
             <div className="mb-8">
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
+                  {/* ESPAÇO DA FOTO ATUALIZADO */}
+                  <div
+                    className="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-white/20"
                     style={{ background: `linear-gradient(to bottom right, ${colors.primary}, ${colors.secondary})` }}
                   >
-                    {user?.name?.[0] || "U"}
+                    {/* Lógica para mostrar a foto ou a letra */}
+                    {user?.avatar_url ? (
+                      <img src={user.avatar_url} alt="Perfil" className="w-full h-full object-cover" />
+                    ) : (
+                      user?.name?.[0] || "U"
+                    )}
                   </div>
+
                   <div>
                     <p className="font-black text-gray-900 leading-tight">
                       {user?.name?.split(" ")[0] || "Aluno"}
                     </p>
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className="text-[10px] mt-1 uppercase font-black"
                       style={{ color: colors.primary, borderColor: colors.primary + "40" }}
                     >
@@ -86,34 +93,34 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
                   <span className="text-gray-500 flex items-center gap-1"><Target className="w-3 h-3" /> Meu Progresso</span>
                   <span style={{ color: colors.primary }}>{progressPercentage}%</span>
                 </div>
-                <Progress 
-                  value={progressPercentage} 
+                <Progress
+                  value={progressPercentage}
                   className="h-2 bg-gray-200"
-                  // Nota: A cor interna do progress geralmente é definida via CSS ou no componente UI
+                // Nota: A cor interna do progress geralmente é definida via CSS ou no componente UI
                 />
               </div>
             </div>
 
             {/* Menu: Links Diretos com a Nova Paleta */}
             <nav className="flex-grow space-y-4">
-              
+
               {/* MEUS CURSOS (Cores Primárias) */}
-              <a 
+              <a
                 href="/my-courses"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-4 p-5 rounded-2xl transition-all shadow-sm border-2 font-black text-lg"
-                style={{ 
+                style={{
                   backgroundColor: pathname === '/my-courses' ? colors.primary : colors.background,
                   color: pathname === '/my-courses' ? colors.background : colors.primary,
                   borderColor: colors.primary
                 }}
               >
-                <BookOpen className="h-6 w-6" /> 
+                <BookOpen className="h-6 w-6" />
                 <span>Meus Cursos</span>
               </a>
 
               {/* BIBLIOTECA (Azul Midnight para autoridade) */}
-              <a 
+              <a
                 href="/materiais"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-4 p-5 rounded-2xl text-white shadow-lg border-2 transition-all active:scale-95 font-black text-lg"
@@ -122,9 +129,9 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
                 <Library className="h-6 w-6" />
                 <span>Biblioteca</span>
               </a>
-              
+
               {/* ALTERAR SENHA (Laranja Cobre - Destaque de ação) */}
-              <a 
+              <a
                 href="/auth/forgot-password"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-4 p-5 rounded-2xl text-white shadow-lg border-2 transition-all active:scale-95 font-black text-lg"
@@ -135,10 +142,10 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
               </a>
 
               {/* SUPORTE WHATSAPP (Highlight para urgência/suporte) */}
-              <a 
-                href={whatsappUrl} 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-4 p-5 rounded-2xl text-white shadow-lg border-2 transition-all active:scale-95 font-black text-lg"
                 style={{ backgroundColor: colors.secondary, borderColor: colors.secondary }}
@@ -148,9 +155,24 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
                 <Badge className="ml-auto bg-white text-[10px] font-black" style={{ color: colors.secondary }}>ON</Badge>
               </a>
 
+              {/* NOVO: LINK PARA O PERFIL */}
+              <a
+                href="/settings"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-4 p-5 rounded-2xl transition-all shadow-sm border-2 font-black text-lg"
+                style={{
+                  backgroundColor: pathname === '/settings' ? colors.primary : colors.background,
+                  color: pathname === '/settings' ? colors.background : colors.primary,
+                  borderColor: colors.primary
+                }}
+              >
+                <User className="h-6 w-6" />
+                <span>Meu Perfil</span>
+              </a>
+
               {/* RETOMAR AULA Contextual (Azul Midnight) */}
               {isInsideCourse && (
-                <a 
+                <a
                   href={`/course/${courseId}`}
                   onClick={() => setOpen(false)}
                   className="flex items-center gap-4 p-5 rounded-2xl text-white shadow-xl border-2 transition-all active:scale-95 font-black text-lg"
@@ -164,12 +186,12 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
 
             {/* Rodapé: Sair */}
             <div className="mt-8 pt-6 border-t border-gray-100">
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start gap-4 text-gray-600 hover:bg-red-50 rounded-2xl py-8 transition-all" 
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-4 text-gray-600 hover:bg-red-50 rounded-2xl py-8 transition-all"
                 onClick={() => { signOut(); setOpen(false); }}
               >
-                <LogOut className="h-6 w-6" /> 
+                <LogOut className="h-6 w-6" />
                 <span className="font-black text-xl">Sair da Conta</span>
               </Button>
             </div>

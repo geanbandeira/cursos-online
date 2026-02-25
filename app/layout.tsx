@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 // import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { Suspense } from "react"
+import { Toaster } from 'sonner'
 import "./globals.css"
 
 const inter = Inter({
@@ -16,6 +17,8 @@ export const metadata: Metadata = {
   description: "Cursos de Análise de Negócio - BPM, BPMN com Bizagi, Jira Software - Gestão Ágil de Projetos e Operações, Gerenciamento de Projetos PMI - Iniciação ao Planejamento, Gerenciamento de Projetos PMI - Planejamento Avançado, Gerenciamento de Projetos PMI - Execução, Monitoramento e Controle, Dominando OKR. Plataforma de ensino online especializada em desenvolvimento profissional",
   generator: "v0.app",
 }
+
+
 
 export default function RootLayout({
   children,

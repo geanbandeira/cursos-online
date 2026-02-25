@@ -8,6 +8,7 @@ interface User {
   name: string
   phone: string
   role?: string
+  avatar_url?: string
 }
 
 interface AuthContextType {
@@ -26,6 +27,8 @@ export const useAuth = () => {
   }
   return context
 }
+
+
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)

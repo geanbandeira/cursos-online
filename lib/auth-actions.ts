@@ -107,6 +107,8 @@ export async function getAllUsers(adminEmail: string) {
   }
 }
 
+
+
 export async function signUpAction(email: string, password: string, name: string, phone: string) {
   try {
     console.log("[v0] Iniciando cadastro para email:", email)
@@ -257,6 +259,21 @@ export async function getUserFromToken(accessToken: string) {
     }
   } catch (error: any) {
     console.error("[v0] Erro ao buscar dados completos do usuário:", error.message);
+    return { success: false, error: error.message }
+  }
+}
+
+
+export async function updateUserProfile(email: string, data: { first_name?: string, avatar_url?: string }) {
+  try {
+    // Atualiza o nome ou a foto no banco MySQL RDS
+    await query(
+      "UPDATE users SET first_name = COALESCE(?, first_name), avatar_url = COALESCE(?, avatar_url), updated_at = NOW() WHERE email = ?",
+      [data.first_name || null, data.avatar_url || null, email]
+    )
+    return { success: true }
+  } catch (error: any) {
+    console.error("Erro ao atualizar perfil:", error.message)
     return { success: false, error: error.message }
   }
 }
