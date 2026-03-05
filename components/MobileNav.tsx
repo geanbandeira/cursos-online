@@ -4,7 +4,7 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import {
-  Menu, X, BookOpen, LogOut, Zap, Target, Library, Lock, MessageCircle, User
+  Menu, X, BookOpen, Award, LogOut, Zap, Target, Library, Lock, MessageCircle, User
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -153,6 +153,21 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
                 <MessageCircle className="h-6 w-6 fill-white" />
                 <span>Suporte VIP</span>
                 <Badge className="ml-auto bg-white text-[10px] font-black" style={{ color: colors.secondary }}>ON</Badge>
+              </a>
+
+              {/* MEUS CERTIFICADOS (Azul Midnight para autoridade) */}
+              <a
+                href="/meus-certificados"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-4 p-5 rounded-2xl text-white shadow-lg border-2 transition-all active:scale-95 font-black text-lg mt-4"
+                style={{
+                  backgroundColor: "#00324F",
+                  borderColor: "#00324F",
+                  boxShadow: "0 10px 15px -3px rgba(0, 50, 79, 0.3)"
+                }}
+              >
+                <Award className="h-6 w-6" />
+                <span>Meus Certificados</span>
               </a>
 
               {/* NOVO: LINK PARA O PERFIL */}

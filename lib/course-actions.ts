@@ -184,7 +184,55 @@ export async function enrollUserInCourseAction(userId: number, courseId: number)
   }
 }
 
-// No final do arquivo lib/course-actions.ts
+export async function issueCertificateAction(data: {
+  userId: number;
+  courseId: number;
+  certificateCode: string;
+  pdfUrl: string;
+  imageUrl: string;
+}) {
+  try {
+    // Busca o título do curso primeiro
+    const courses = await sql`SELECT title FROM courses WHERE id = ${data.courseId}`;
+    const courseName = courses[0]?.title || "Curso Concluído";
+
+    // O uso de ${} na função sql que você possui já trata os parâmetros
+    // mas se algum valor de 'data' for undefined, o erro acontece aqui.
+    await sql`
+      INSERT INTO certificates 
+      (user_id, course_id, course_name_at_issue, pdf_url, image_url, certificate_code, issue_date)
+      VALUES 
+      (${data.userId}, ${data.courseId}, ${courseName}, ${data.pdfUrl}, ${data.imageUrl}, ${data.certificateCode}, NOW())
+    `;
+    
+    return { success: true };
+  } catch (error: any) {
+    console.error("Erro na query de certificado:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+// lib/course-actions.ts
+
+export async function getMyCertificatesAction(userId: string) {
+  try {
+    console.log("[v0] Buscando certificados para o aluno:", userId);
+    
+    // Busca os certificados vinculados ao ID do aluno logado
+    const result = await sql`
+      SELECT cert.*, c.title as course_title 
+      FROM certificates cert
+      JOIN courses c ON cert.course_id = c.id
+      WHERE cert.user_id = ${Number.parseInt(userId)}
+      ORDER BY cert.issue_date DESC
+    `;
+    
+    return { success: true, certificates: result };
+  } catch (error: any) {
+    console.error("[v0] Erro ao buscar certificados do aluno:", error);
+    return { success: false, certificates: [], error: error.message };
+  }
+}
 
 export async function getCourseMaterials(courseId: number) {
   try {

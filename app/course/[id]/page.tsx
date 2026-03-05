@@ -55,6 +55,21 @@ interface Lesson {
   is_preview: boolean
 }
 
+// No lib/course-actions.ts
+export async function getMyCertificatesAction(userId: string) {
+  try {
+    const result = await sql`
+      SELECT c.*, co.title as course_title 
+      FROM certificates c
+      JOIN courses co ON c.course_id = co.id
+      WHERE c.user_id = ${Number.parseInt(userId)}
+    `;
+    return { success: true, certificates: result };
+  } catch (error: any) {
+    return { success: false, certificates: [] };
+  }
+}
+
 export default function CoursePage() {
   const params = useParams()
   const courseId = params.id as string
@@ -199,18 +214,27 @@ export default function CoursePage() {
   }
 }
 
-  const canAccessLesson = (lesson: Lesson) => {
-  // Se o usuário estiver logado e matriculado, ele acessa tudo
+
+
+  // Defina isso logo no início do componente CoursePage (perto de isFreeCourse)
+const isRestricted = courseId === "9" || courseId === "10";
+
+const canAccessLesson = (lesson: Lesson) => {
+  // 1. Se estiver matriculado, acessa tudo
   if (isEnrolled) return true;
 
-  // Se for o curso 11 (Grátis), bloqueia TUDO para quem não está logado
-  if (isFreeCourse) {
-    return false; 
+  // 2. Se for curso 9 ou 10, obedece APENAS ao banco de dados (is_preview)
+  if (isRestricted) {
+    return !!lesson.is_preview;
   }
 
-  // Regra para outros cursos (pagos)
-  return lesson.is_preview || lesson.lesson_order <= 3;
+  // 3. Se for o curso 11 (Grátis), bloqueia para não logados
+  if (isFreeCourse) return false;
+
+  // 4. Regra padrão para outros cursos: libera se estiver no BD ou se for uma das 3 primeiras
+  return !!lesson.is_preview || lesson.lesson_order <= 3;
 }
+
 
   const PurchaseModal = () => {
   if (!showPurchaseModal || !course) return null;
@@ -254,6 +278,7 @@ export default function CoursePage() {
       </div>
     );
   }
+
 
 
     const pixMessage = `Olá! Segue o comprovante do pagamento PIX do curso ${course.title}.`

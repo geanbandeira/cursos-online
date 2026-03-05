@@ -12,6 +12,7 @@ import { ArrowLeft, BookOpen, Clock, Calendar, CheckCircle, GraduationCap, LogIn
 import { getUserIdByEmail, getUserEnrolledCourses, getUserProgress, getRecommendedCourses } from "@/lib/course-actions"
 import { format, formatDistanceToNow, parseISO } from "date-fns"
 import { ptBR } from 'date-fns/locale'
+import { PartyPopper } from "lucide-react"
 
 
 interface EnrolledCourse {
@@ -179,9 +180,9 @@ export default function MyCoursesPage() {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-6">
               {/* MENU COM PROGRESSO REAL */}
-              <MobileNav 
-                completedLessons={totalCompletedLessons} 
-                totalLessons={totalLessonsCount} 
+              <MobileNav
+                completedLessons={totalCompletedLessons}
+                totalLessons={totalLessonsCount}
               />
               <Link href="/">
                 <img
@@ -215,6 +216,29 @@ export default function MyCoursesPage() {
           ))}
         </div>
 
+        {/* Banner de Conclusão 100% - Visão Profi */}
+        {courses.some(c => c.progress === 100) && (
+          <div className="mb-10 bg-green-50 border border-green-200 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="bg-green-100 p-4 rounded-full shadow-inner">
+              <PartyPopper className="w-10 h-10 text-green-600" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-xl font-bold text-green-900">Parabéns pela sua conquista!</h3>
+              <p className="text-green-700 mt-1">
+                Identificamos que você concluiu um treinamento com 100% de aproveitamento.
+                <span className="block mt-1 font-semibold">🏆 Seu certificado está em fase de emissão e ficará disponível em até 24h na sua galeria.</span>
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 w-full md:w-auto">
+              <a href="/meus-certificados">
+                <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold px-8">
+                  Acessar Meus Certificados
+                </Button>
+              </a>
+            </div>
+          </div>
+        )}
+
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Meus Cursos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {courses.map((course) => (
@@ -238,9 +262,11 @@ export default function MyCoursesPage() {
           ))}
         </div>
 
+
+
         {recommendedCourses.length > 0 && (
           <div className="mt-20">
-            <h2 className="text-2xl font-bold mb-6 flex items-center"><Sparkles className="w-6 h-6 mr-2 text-orange-500" /> Expanda seus horizontes</h2>
+            <h2 className="text-2xl font-bold mb-6 flex items-center"><Sparkles className="w-6 h-6 mr-2 text-orange-500" /> Seu próximo nível começa aqui. 3 aulas gratuitas para você começar hoje.</h2>
             <div ref={scrollRef} className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x scroll-smooth" style={{ scrollbarWidth: 'none' }}>
               {recommendedCourses.map((c) => (
                 <div key={c.id} className="min-w-[320px] snap-center">
