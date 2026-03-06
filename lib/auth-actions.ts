@@ -244,9 +244,10 @@ export async function getUserFromToken(accessToken: string) {
 
     const email = userAttributes.email || ""
 
-    // NOVO: Busca o cargo (role) no MySQL RDS usando o email do Cognito
-    const dbUser = await query("SELECT role FROM users WHERE email = ?", [email]);
+    // ALTERAÇÃO AQUI: Adicione avatar_url no SELECT
+    const dbUser = await query("SELECT role, avatar_url FROM users WHERE email = ?", [email]);
     const role = dbUser.rows[0]?.role || "user";
+    const avatar_url = dbUser.rows[0]?.avatar_url || ""; // Pega a foto do banco
 
     return {
       success: true,
@@ -254,7 +255,8 @@ export async function getUserFromToken(accessToken: string) {
         email: email,
         name: userAttributes.name || "",
         phone: userAttributes.phone_number || "",
-        role: role, // Agora o frontend saberá se você é admin
+        role: role,
+        avatar_url: avatar_url, // Agora o frontend recebe a foto no login
       },
     }
   } catch (error: any) {
