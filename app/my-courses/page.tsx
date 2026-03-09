@@ -35,30 +35,11 @@ export default function MyCoursesPage() {
   const router = useRouter()
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const rawLastLoginAt = user?.lastLoginAt || new Date(Date.now() - 15 * 60 * 1000).toISOString()
-  const [lastLoginDisplay, setLastLoginDisplay] = useState({ full: "Aguardando...", friendly: "..." })
+  const [isPaused, setIsPaused] = useState(false)
 
-  // --- ATUALIZAÇÃO DO ÚLTIMO ACESSO ---
+  // --- CARROSSEL AUTOMÁTICO COM PAUSA ---
   useEffect(() => {
-    const updateTimeDisplay = () => {
-      if (rawLastLoginAt && rawLastLoginAt !== 'Data indisponível') {
-        const date = parseISO(rawLastLoginAt)
-        const fullDate = format(date, "EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })
-        const friendlyDistance = formatDistanceToNow(date, { addSuffix: true, locale: ptBR })
-        setLastLoginDisplay({
-          full: fullDate.charAt(0).toUpperCase() + fullDate.slice(1),
-          friendly: friendlyDistance
-        })
-      }
-    }
-    updateTimeDisplay()
-    const timer = setInterval(updateTimeDisplay, 60000)
-    return () => clearInterval(timer)
-  }, [rawLastLoginAt])
-
-  // --- CARROSSEL AUTOMÁTICO ---
-  useEffect(() => {
-    if (recommendedCourses.length === 0) return
+    if (recommendedCourses.length === 0 || isPaused) return
     const interval = setInterval(() => {
       if (scrollRef.current) {
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
@@ -68,9 +49,9 @@ export default function MyCoursesPage() {
           scrollRef.current.scrollBy({ left: 350, behavior: 'smooth' })
         }
       }
-    }, 5000) // 5 segundos para uma leitura confortável
+    }, 5000)
     return () => clearInterval(interval)
-  }, [recommendedCourses])
+  }, [recommendedCourses, isPaused])
 
   // --- LÓGICA DE BUSCA DE DADOS REAIS ---
   useEffect(() => {
@@ -267,7 +248,13 @@ export default function MyCoursesPage() {
         {recommendedCourses.length > 0 && (
           <div className="mt-20">
             <h2 className="text-2xl font-bold mb-6 flex items-center"><Sparkles className="w-6 h-6 mr-2 text-orange-500" /> Seu próximo nível começa aqui. 3 aulas gratuitas para você começar hoje.</h2>
-            <div ref={scrollRef} className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x scroll-smooth" style={{ scrollbarWidth: 'none' }}>
+            {/* --- SUBSTITUA A DIV DE ABERTURA DO CARROSSEL POR ESTA --- */}
+<div 
+  ref={scrollRef} 
+  onMouseEnter={() => setIsPaused(true)}
+  onMouseLeave={() => setIsPaused(false)}
+  className="flex gap-6 overflow-x-auto pb-8 snap-x scroll-smooth custom-scrollbar"
+>
               {recommendedCourses.map((c) => (
                 <div key={c.id} className="min-w-[320px] snap-center">
                   <Card className="hover:shadow-2xl transition-all border-gray-100 overflow-hidden">
@@ -283,9 +270,7 @@ export default function MyCoursesPage() {
           </div>
         )}
 
-        <div className="w-full text-right mt-10 text-xs text-gray-400">
-          <LogIn className="inline w-3 h-3 mr-1" /> Último acesso: <span title={lastLoginDisplay.full}>{lastLoginDisplay.friendly}</span>
-        </div>
+        
       </main>
     </div>
   )

@@ -967,3 +967,29 @@
     right: 15px;
   }
 }
+
+/* Adicione no globals.css para uma barra de scroll profissional */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #00324F; 
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #004b7a;
+}
+
+/* Garante que o scroll manual funcione mesmo com o snap */
+.custom-scrollbar {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #00324F #f1f1f1;
+}
