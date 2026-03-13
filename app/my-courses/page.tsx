@@ -185,7 +185,7 @@ export default function MyCoursesPage() {
           </div>
         </div>
 
-<div className="mb-10 overflow-hidden rounded-xl shadow-lg border border-gray-100 w-1/3 mx-auto">
+<div className="mb-10 overflow-hidden rounded-xl shadow-lg border border-gray-100 w-full md:w-1/3 mx-auto">
   <img 
     src="https://masterproject.com.br/assets/img/banner-presente.jpg" 
     alt="Banner de Cursos" 
