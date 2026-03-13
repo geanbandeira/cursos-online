@@ -185,6 +185,14 @@ export default function MyCoursesPage() {
           </div>
         </div>
 
+<div className="mb-10 overflow-hidden rounded-xl shadow-lg border border-gray-100 w-1/3 mx-auto">
+  <img 
+    src="https://masterproject.com.br/assets/img/banner-presente.jpg" 
+    alt="Banner de Cursos" 
+    className="w-full h-auto object-cover"
+  />
+</div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {stats.map((s, i) => (
             <Card key={i} className="flex flex-row items-center p-4 border-0 shadow-md">
