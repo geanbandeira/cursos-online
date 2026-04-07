@@ -1,6 +1,7 @@
 "use server"
 
 import { sql } from "@/lib/database"
+import { query } from "./database"; // Verifique se este import já existe no topo
 
 
 export async function checkUserEnrollment(userId: string, courseId: number) {
@@ -345,6 +346,176 @@ export async function getUserCertificatesAction(userId: number) {
     `;
     return { success: true, certificates: result };
   } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+
+export async function getManagerParticipationReport(companyId: number) {
+  const sql = `
+    SELECT 
+      u.id,
+      CONCAT(u.first_name, ' ', u.last_name) as name,
+      u.department,
+      COUNT(DISTINCT DATE(lp.completed_at)) as days_present,
+      DATEDIFF(CURRENT_DATE, DATE(u.created_at)) as days_since_joined,
+      COUNT(DISTINCT lp.lesson_id) as lessons_completed,
+      (SELECT COUNT(*) FROM lessons l 
+       JOIN enrollments e ON l.course_id = e.course_id 
+       WHERE e.user_id = u.id) as total_lessons
+    FROM users u
+    LEFT JOIN lesson_progress lp ON u.id = lp.user_id
+    WHERE u.company_id = ?
+    GROUP BY u.id, u.first_name, u.last_name, u.department, u.created_at
+  `;
+
+  const { rows } = await query(sql, [companyId]);
+
+  return rows.map((row: any) => {
+    const presence = row.days_present || 0;
+    // Dias ausentes = dias totais desde o cadastro - dias que acessou
+    const absent = Math.max(0, row.days_since_joined - presence);
+    const progress = row.total_lessons > 0 
+      ? Math.round((row.lessons_completed / row.total_lessons) * 100) 
+      : 0;
+
+    return {
+      ...row,
+      days_present: presence,
+      days_absent: absent,
+      presenceRate: progress,
+      status: progress > 70 ? "Alta Performance" : progress > 30 ? "Em Progresso" : "Alerta"
+    };
+  });
+}
+
+export async function getDailyCompletionTrend(companyId: number) {
+  const sql = `
+    SELECT 
+      DATE(lp.completed_at) as date,
+      COUNT(lp.id) as completions
+    FROM lesson_progress lp
+    JOIN users u ON lp.user_id = u.id
+    WHERE u.company_id = ? 
+    AND lp.completed_at IS NOT NULL -- Alterado de lp.completed = true
+    AND lp.completed_at >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
+    GROUP BY DATE(lp.completed_at)
+    ORDER BY date ASC
+  `;
+  
+  const { rows } = await query(sql, [companyId]);
+  return rows;
+}
+
+// lib/course-actions.ts
+
+export async function getActivationByDepartment(companyId: number) {
+  const sql = `
+    SELECT 
+      u.department,
+      COUNT(u.id) as total_users,
+      -- Conta quantos usuários têm pelo menos um registro de progresso
+      COUNT(DISTINCT lp.user_id) as activated_users
+    FROM users u
+    LEFT JOIN lesson_progress lp ON u.id = lp.user_id
+    WHERE u.company_id = ?
+    GROUP BY u.department
+  `;
+  
+  const { rows } = await query(sql, [companyId]);
+  
+  return rows.map((row: any) => ({
+    department: row.department || "Não Definido",
+    activationRate: row.total_users > 0 
+      ? Math.round((row.activated_users / row.total_users) * 100) 
+      : 0,
+    total: row.total_users,
+    activated: row.activated_users
+  }));
+}
+
+
+export async function getCompanyQuizPerformance(companyId: number) {
+  const sql = `
+    SELECT 
+      qa.category,
+      AVG(qa.score) as avg_score,
+      COUNT(qa.id) as total_attempts,
+      -- Comparativo: Média de quem fez após aula AO VIVO vs GRAVADA
+      AVG(CASE WHEN qa.is_after_live_session = 1 THEN qa.score END) as live_score,
+      AVG(CASE WHEN qa.is_after_live_session = 0 THEN qa.score END) as recorded_score
+    FROM quiz_attempts qa
+    JOIN users u ON qa.user_id = u.id
+    WHERE u.company_id = ?
+    GROUP BY qa.category
+  `;
+
+  const { rows } = await query(sql, [companyId]);
+  return rows;
+}
+
+// lib/course-actions.ts
+export async function getCompanyCompetencyMap(companyId: number) {
+  const sql = `
+    SELECT 
+      qa.category,
+      AVG(qa.score) as avg_score,
+      COUNT(qa.id) as total_tests,
+      MAX(qa.score) as top_score
+    FROM quiz_attempts qa
+    JOIN users u ON qa.user_id = u.id
+    WHERE u.company_id = ?
+    GROUP BY qa.category
+  `;
+  const { rows } = await query(sql, [companyId]);
+  return rows;
+}
+
+export async function getCompanyTechnicalStats(companyId: number) {
+  try {
+    const cId = Number(companyId);
+
+    // 1. Ranking por Setor: Pega a média de progresso de todos os alunos da empresa
+    const rankingQuery = `
+      SELECT 
+        COALESCE(NULLIF(u.department, ''), 'Geral') as department, 
+        ROUND(AVG(COALESCE(e.progress, 0)), 1) as avg_score,
+        COUNT(DISTINCT u.id) as total_students
+      FROM users u
+      LEFT JOIN enrollments e ON u.id = e.user_id
+      WHERE u.company_id = ?
+      GROUP BY COALESCE(NULLIF(u.department, ''), 'Geral')
+      ORDER BY avg_score DESC
+    `;
+
+    // 2. Talentos: Os 3 alunos com maior média de progresso individual
+    const talentsQuery = `
+      SELECT 
+        u.first_name, 
+        u.last_name, 
+        u.email, 
+        COALESCE(NULLIF(u.department, ''), 'Geral') as department,
+        ROUND(AVG(COALESCE(e.progress, 0)), 1) as avg_score
+      FROM users u
+      INNER JOIN enrollments e ON u.id = e.user_id
+      WHERE u.company_id = ?
+      GROUP BY u.id
+      ORDER BY avg_score DESC
+      LIMIT 3
+    `;
+
+    const [rankingRes, talentsRes] = await Promise.all([
+      query(rankingQuery, [cId]),
+      query(talentsQuery, [cId])
+    ]);
+
+    return {
+      success: true,
+      ranking: rankingRes.rows || [],
+      talents: talentsRes.rows || []
+    };
+  } catch (error: any) {
+    console.error("Erro SQL Stats:", error.message);
     return { success: false, error: error.message };
   }
 }
