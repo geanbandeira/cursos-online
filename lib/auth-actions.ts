@@ -73,10 +73,10 @@ export async function getAllUsers(adminEmail: string) {
       throw new Error("Acesso não autorizado");
     }
 
-    // 2. Busca usuários com seus cursos e progressos agrupados
+    // 2. Busca usuários com last_login e progresso
     const result = await query(
       `SELECT 
-        u.id, u.email, u.first_name, u.last_name, u.role, u.created_at,
+        u.id, u.email, u.first_name, u.last_name, u.role, u.created_at, u.last_login, u.department, u.company_id,
         (
           SELECT JSON_ARRAYAGG(
             JSON_OBJECT(
@@ -94,7 +94,6 @@ export async function getAllUsers(adminEmail: string) {
       []
     );
 
-    // Formata o resultado para o frontend
     const users = result.rows.map(u => ({
       ...u,
       enrollments: u.enrollments_data ? (typeof u.enrollments_data === 'string' ? JSON.parse(u.enrollments_data) : u.enrollments_data) : []
@@ -107,7 +106,16 @@ export async function getAllUsers(adminEmail: string) {
   }
 }
 
-
+export async function updateLastLogin(email: string) {
+  try {
+    const sql = `UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE email = ?`;
+    await query(sql, [email]);
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao atualizar last_login:", error);
+    return { success: false };
+  }
+}
 
 export async function signUpAction(email: string, password: string, name: string, phone: string) {
   try {

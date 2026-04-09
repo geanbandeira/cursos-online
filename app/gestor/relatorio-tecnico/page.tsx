@@ -89,13 +89,11 @@ export default function RelatorioTecnicoPage() {
             <h1 className="text-4xl font-black text-[#00324F] tracking-tighter uppercase">Análise Profunda</h1>
             <p className="text-slate-500 font-medium">Empresa: <span className="font-bold text-[#00324F]">{user?.company_name || 'Master Project'}</span></p>
           </div>
-
           <ExportButtons 
             participationData={data.ranking} 
             companyName={`${user?.company_name || 'Relatorio'}_Performance`} 
           />
         </div>
-
         {/* CONTEÚDO PARA CAPTURA (Onde o ID do PDF deve estar) */}
         <div id="dashboard-content" className="space-y-8">
           

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { FileSpreadsheet, FileText, Loader2 } from "lucide-react"
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import html2canvas from 'html2canvas'
 
 interface ExportButtonsProps {
@@ -15,82 +16,86 @@ interface ExportButtonsProps {
 export function ExportButtons({ participationData, companyName }: ExportButtonsProps) {
   const [loading, setLoading] = useState(false)
 
+  // EXCEL (Já está funcionando 100%)
   const handleExcel = () => {
     try {
       const data = Array.isArray(participationData) ? participationData : []
       if (data.length === 0) return alert("Sem dados para exportar.")
       const sanitized = data.map(item => ({
-        "Aluno": String(item?.name || item?.first_name || "N/A"),
+        "Aluno": String(item?.name || "N/A"),
         "Email": String(item?.email || "N/A"),
         "Setor": String(item?.department || "Geral"),
-        "Progresso": `${item?.progress || 0}%`,
-        "Status": String(item?.status || "Ativo")
+        "Progresso (%)": `${item?.presenceRate || 0}%`,
+        "Status": String(item?.status || "N/A")
       }))
       const ws = XLSX.utils.json_to_sheet(sanitized)
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, "Relatorio")
-      XLSX.writeFile(wb, `Relatorio_${companyName || 'Empresa'}.xlsx`)
+      XLSX.writeFile(wb, `Relatorio_${companyName}.xlsx`)
     } catch (err) { alert("Erro no Excel.") }
   }
 
+  // PDF HÍBRIDO (GRÁFICOS + TABELA DE DADOS)
   const handlePDF = async () => {
-    const el = document.getElementById('dashboard-content')
-    if (!el) return alert("Área de captura não encontrada.")
+    const data = Array.isArray(participationData) ? participationData : []
+    if (data.length === 0) return alert("Sem dados para exportar.")
 
     setLoading(true)
-
-    // 1. CRIAR UM ESCUDO ANTI-OKLCH (CSS Temporário na página real)
-    const antiOklchStyle = document.createElement('style')
-    antiOklchStyle.id = "anti-oklch-fix"
-    antiOklchStyle.innerHTML = `
-      :root {
-        --background: 255 255 255 !important;
-        --foreground: 0 0 0 !important;
-        --card: 255 255 255 !important;
-        --primary: 0 50 79 !important; /* Seu azul Master Project */
-        --border: 226 232 240 !important;
-      }
-      /* Força todas as cores para HEX/RGB simples */
-      * { 
-        color-scheme: light !important;
-        background-color: transparent; 
-        color: #000000 !important;
-      }
-      .bg-white, .card, body { background-color: #ffffff !important; }
-      .text-white { color: #ffffff !important; }
-      .bg-slate-900, .bg-black { background-color: #00324F !important; color: #ffffff !important; }
-    `
+    const pdf = new jsPDF('p', 'mm', 'a4')
 
     try {
-      // 2. APLICA O FIX NO DOCUMENTO REAL POR UM INSTANTE
-      document.head.appendChild(antiOklchStyle)
+      // 1. Cabeçalho do PDF
+      pdf.setFontSize(18)
+      pdf.setTextColor(0, 50, 79) // Azul Master Project
+      pdf.text("RELATÓRIO DE PERFORMANCE CORPORATIVA", 14, 22)
       
-      // Pequena pausa para o navegador processar a troca de cores
-      await new Promise(r => setTimeout(r, 100))
+      pdf.setFontSize(10)
+      pdf.setTextColor(100)
+      pdf.text(`Empresa: ${companyName}`, 14, 30)
+      pdf.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}`, 14, 35)
 
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        // Ignora erros de parsing de cor do html2canvas
-        ignoreElements: (element) => element.classList.contains('no-pdf'),
+      // 2. Captura opcional dos Gráficos (Apenas se houver um ID para eles)
+      // Se você quiser capturar os gráficos, coloque um ID="charts-area" neles
+      const chartsEl = document.getElementById('charts-area')
+      let yPos = 45
+
+      if (chartsEl) {
+        const canvas = await html2canvas(chartsEl, { scale: 1, useCORS: true })
+        const imgData = canvas.toDataURL('image/jpeg', 0.8)
+        const imgProps = pdf.getImageProperties(imgData)
+        const pdfWidth = pdf.internal.pageSize.getWidth() - 28
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+        pdf.addImage(imgData, 'JPEG', 14, yPos, pdfWidth, pdfHeight)
+        yPos += pdfHeight + 10
+      }
+
+      // 3. GERANDO A TABELA DE DADOS (Inquebrável)
+      autoTable(pdf, {
+        startY: yPos,
+        head: [['Aluno', 'Email', 'Setor', 'Progresso', 'Status']],
+        body: data.map(item => [
+          item.name,
+          item.email,
+          item.department || 'Geral',
+          `${item.presenceRate}%`,
+          item.status
+        ]),
+        headStyles: { fillColor: [0, 50, 79], textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        styles: { fontSize: 9, cellPadding: 3 },
+        margin: { top: 20 },
+        didDrawPage: (data) => {
+          // Rodapé em todas as páginas
+          pdf.setFontSize(8)
+          pdf.text(`Página ${data.pageNumber}`, pdf.internal.pageSize.getWidth() - 25, pdf.internal.pageSize.getHeight() - 10)
+        }
       })
 
-      // 3. REMOVE O FIX (O site volta a ser "moderno" com oklch)
-      document.getElementById("anti-oklch-fix")?.remove()
-
-      const img = canvas.toDataURL('image/jpeg', 0.95)
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      const width = pdf.internal.pageSize.getWidth()
-      const height = (canvas.height * width) / canvas.width
-      
-      pdf.addImage(img, 'JPEG', 0, 0, width, height)
-      pdf.save(`Dashboard_${companyName}.pdf`)
+      pdf.save(`Relatorio_Performance_${companyName}.pdf`)
 
     } catch (err) {
-      console.error("ERRO NO PDF:", err)
-      document.getElementById("anti-oklch-fix")?.remove() // Garante a limpeza
-      alert("Ainda há um conflito de cores. Tente atualizar a página.")
+      console.error("Erro PDF:", err)
+      alert("Erro ao gerar PDF. Use o Excel.")
     } finally {
       setLoading(false)
     }

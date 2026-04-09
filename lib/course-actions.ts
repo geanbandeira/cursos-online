@@ -356,24 +356,26 @@ export async function getManagerParticipationReport(companyId: number) {
     SELECT 
       u.id,
       CONCAT(u.first_name, ' ', u.last_name) as name,
+      u.email, -- Adicionado para o Excel
       u.department,
-      COUNT(DISTINCT DATE(lp.completed_at)) as days_present,
+      -- Filtramos para ignorar o curso de Aulas Abertas (ID 11)
+      COUNT(DISTINCT CASE WHEN l.course_id != 11 THEN DATE(lp.completed_at) END) as days_present,
       DATEDIFF(CURRENT_DATE, DATE(u.created_at)) as days_since_joined,
-      COUNT(DISTINCT lp.lesson_id) as lessons_completed,
-      (SELECT COUNT(*) FROM lessons l 
-       JOIN enrollments e ON l.course_id = e.course_id 
-       WHERE e.user_id = u.id) as total_lessons
+      COUNT(DISTINCT CASE WHEN l.course_id != 11 THEN lp.lesson_id END) as lessons_completed,
+      (SELECT COUNT(*) FROM lessons l2 
+       JOIN enrollments e ON l2.course_id = e.course_id 
+       WHERE e.user_id = u.id AND e.course_id != 11) as total_lessons
     FROM users u
     LEFT JOIN lesson_progress lp ON u.id = lp.user_id
+    LEFT JOIN lessons l ON lp.lesson_id = l.id -- Join para saber o curso da aula
     WHERE u.company_id = ?
-    GROUP BY u.id, u.first_name, u.last_name, u.department, u.created_at
+    GROUP BY u.id, u.first_name, u.last_name, u.email, u.department, u.created_at
   `;
 
   const { rows } = await query(sql, [companyId]);
 
   return rows.map((row: any) => {
     const presence = row.days_present || 0;
-    // Dias ausentes = dias totais desde o cadastro - dias que acessou
     const absent = Math.max(0, row.days_since_joined - presence);
     const progress = row.total_lessons > 0 
       ? Math.round((row.lessons_completed / row.total_lessons) * 100) 
@@ -383,7 +385,7 @@ export async function getManagerParticipationReport(companyId: number) {
       ...row,
       days_present: presence,
       days_absent: absent,
-      presenceRate: progress,
+      presenceRate: progress, // Este é o nome que o Excel vai ler agora
       status: progress > 70 ? "Alta Performance" : progress > 30 ? "Em Progresso" : "Alerta"
     };
   });
