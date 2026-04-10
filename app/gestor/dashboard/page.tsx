@@ -4,6 +4,8 @@ import { ParticipationTable } from "@/components/manager/ParticipationTable";
 import { CompletionChart } from "@/components/manager/CompletionChart";
 import { ActivationChart } from "@/components/manager/ActivationChart";
 import { ExportButtons } from "@/components/manager/ExportButtons";
+import { Trophy} from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { 
   getManagerParticipationReport, 
   getDailyCompletionTrend, 
@@ -83,41 +85,7 @@ export default async function ManagerDashboardPage() {
           <StatsCard title="Status do Plano" value="Enterprise" icon={<Award />} color="text-blue-600" />
         </div>
 
-        {/* 2. MATRIZ DE DOMÍNIO TÉCNICO (O BANCO DE QUESTÕES) */}
-        <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
-          <CardHeader className="bg-slate-900 text-white p-6">
-            <div className="flex items-center gap-3">
-              <Zap className="text-yellow-400" />
-              <div>
-                <CardTitle className="uppercase tracking-tight font-black">Matriz de Domínio Técnico</CardTitle>
-                <CardDescription className="text-slate-400 font-medium">Performance real por categoria de conhecimento</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {competencyData.map((item: any) => (
-                <div key={item.category} className="p-5 rounded-2xl border-2 border-slate-50 bg-slate-50/50 hover:bg-white hover:shadow-md transition-all">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.category}</p>
-                  <p className="text-3xl font-black text-slate-900">{Math.round(item.avg_score)}%</p>
-                  
-                  <div className="w-full bg-slate-200 h-2 mt-4 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-1000 ${
-                        item.avg_score > 75 ? 'bg-emerald-500' : item.avg_score > 50 ? 'bg-blue-500' : 'bg-orange-500'
-                      }`}
-                      style={{ width: `${item.avg_score}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-              {competencyData.length === 0 && (
-                <p className="col-span-full text-center py-10 text-slate-400 italic">Aguardando dados de avaliações...</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
+        
         {/* 3. ANÁLISES VISUAIS (GRÁFICOS) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="shadow-xl border-none bg-white rounded-[2rem]">

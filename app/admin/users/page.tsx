@@ -244,7 +244,7 @@ export default function AdminUsersPage() {
                         </div>
                         <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">
                           <LogIn size={12} className="text-emerald-400" />
-                          Acesso: <span className="text-slate-600">{formatDate(u.last_login || u.updated_at)}</span>
+                          Último acesso: <span className="text-slate-600">{formatDate(u.last_login || u.updated_at)}</span>
                         </div>
                       </div>
 
@@ -297,40 +297,40 @@ export default function AdminUsersPage() {
         </Card>
 
         {/* MODAL DE CERTIFICADOS */}
-{selectedCerts && (
-  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-    <Card className="w-full max-w-sm p-8 relative shadow-2xl rounded-[2.5rem] border-none bg-white">
-      <button 
-        onClick={() => setSelectedCerts(null)} 
-        className="absolute right-8 top-8 text-slate-300 hover:text-red-500 transition-colors"
-      >
-        <X size={24} />
-      </button>
-      
-      <h2 className="font-black text-2xl mb-6 text-[#00324F] uppercase tracking-tighter">Diplomas</h2>
-      
-      <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-        {selectedCerts.map((c, i) => (
-          <div key={i} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
-            <span className="font-black text-sm text-[#00324F] uppercase tracking-tight leading-tight">
-              {c.title}
-            </span>
-            <Badge className="bg-emerald-100 text-emerald-700 border-none text-[9px] font-mono w-fit mt-1">
-              {c.certificate_code}
-            </Badge>
+        {selectedCerts && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+            <Card className="w-full max-w-sm p-8 relative shadow-2xl rounded-[2.5rem] border-none bg-white">
+              <button
+                onClick={() => setSelectedCerts(null)}
+                className="absolute right-8 top-8 text-slate-300 hover:text-red-500 transition-colors"
+              >
+                <X size={24} />
+              </button>
+
+              <h2 className="font-black text-2xl mb-6 text-[#00324F] uppercase tracking-tighter">Diplomas</h2>
+
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                {selectedCerts.map((c, i) => (
+                  <div key={i} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
+                    <span className="font-black text-sm text-[#00324F] uppercase tracking-tight leading-tight">
+                      {c.title}
+                    </span>
+                    <Badge className="bg-emerald-100 text-emerald-700 border-none text-[9px] font-mono w-fit mt-1">
+                      {c.certificate_code}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                className="w-full mt-8 bg-[#00324F] h-14 rounded-2xl font-black text-white shadow-xl"
+                onClick={() => setSelectedCerts(null)}
+              >
+                Fechar Visualização
+              </Button>
+            </Card>
           </div>
-        ))}
-      </div>
-      
-      <Button 
-        className="w-full mt-8 bg-[#00324F] h-14 rounded-2xl font-black text-white shadow-xl" 
-        onClick={() => setSelectedCerts(null)}
-      >
-        Fechar Visualização
-      </Button>
-    </Card>
-  </div>
-)}
+        )}
 
         {/* 6. MODAL DE MATRÍCULA (FIX DEFINITIVO) */}
         {showEnrollModal && (

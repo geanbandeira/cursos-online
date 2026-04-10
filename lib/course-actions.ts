@@ -521,3 +521,24 @@ export async function getCompanyTechnicalStats(companyId: number) {
     return { success: false, error: error.message };
   }
 }
+
+export async function getManagerCompetencyData(companyId: number) {
+  try {
+    const sql = `
+      SELECT 
+        c.title as category,
+        AVG(e.progress) as avg_score
+      FROM enrollments e
+      JOIN courses c ON e.course_id = c.id
+      JOIN users u ON e.user_id = u.id
+      WHERE u.company_id = ? AND c.id != 11 -- Ignora aulas abertas
+      GROUP BY c.id, c.title
+    `;
+    
+    const { rows } = await query(sql, [companyId]);
+    return rows; // Retorna exatamente o que está no banco
+  } catch (error) {
+    console.error("Erro ao buscar matriz:", error);
+    return [];
+  }
+}

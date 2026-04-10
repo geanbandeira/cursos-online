@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 import { Eye, EyeOff, ArrowLeft, UserPlus } from "lucide-react"
-import { signInAction, getUserFromToken } from "@/lib/auth-actions"
+import { signInAction, getUserFromToken, updateLastLogin} from "@/lib/auth-actions"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -35,8 +35,10 @@ export default function LoginPage() {
         const userResult = await getUserFromToken(result.data.AuthenticationResult.AccessToken)
 
         if (userResult.success) {
-          setUser(userResult.data)
-          router.push("/my-courses") // Redireciona para a página principal após login
+  await updateLastLogin(email); 
+  
+  setUser(userResult.data)
+  router.push("/my-courses")
         } else {
           setError("Erro ao obter dados do usuário")
         }

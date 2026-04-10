@@ -108,11 +108,11 @@ export async function getAllUsers(adminEmail: string) {
 
 export async function updateLastLogin(email: string) {
   try {
-    const sql = `UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE email = ?`;
+    const sql = `UPDATE users SET last_login = DATE_SUB(NOW(), INTERVAL 3 HOUR) WHERE email = ?`;
     await query(sql, [email]);
     return { success: true };
-  } catch (error) {
-    console.error("Erro ao atualizar last_login:", error);
+  } catch (error: any) {
+    console.error("Erro ao registrar acesso:", error.message);
     return { success: false };
   }
 }
