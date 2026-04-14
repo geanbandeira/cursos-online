@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 // import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { Suspense } from "react"
+
 import { Toaster } from 'sonner'
 import "./globals.css"
 

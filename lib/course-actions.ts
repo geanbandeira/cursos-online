@@ -477,7 +477,7 @@ export async function getCompanyTechnicalStats(companyId: number) {
   try {
     const cId = Number(companyId);
 
-    // 1. Ranking por Setor: Pega a média de progresso de todos os alunos da empresa
+    // 1. Ranking por Setor (Lógica direta)
     const rankingQuery = `
       SELECT 
         COALESCE(NULLIF(u.department, ''), 'Geral') as department, 
@@ -486,22 +486,21 @@ export async function getCompanyTechnicalStats(companyId: number) {
       FROM users u
       LEFT JOIN enrollments e ON u.id = e.user_id
       WHERE u.company_id = ?
-      GROUP BY COALESCE(NULLIF(u.department, ''), 'Geral')
+      GROUP BY department
       ORDER BY avg_score DESC
     `;
 
-    // 2. Talentos: Os 3 alunos com maior média de progresso individual
+    // 2. Talentos (Os 3 alunos com maior progresso)
     const talentsQuery = `
       SELECT 
         u.first_name, 
         u.last_name, 
-        u.email, 
         COALESCE(NULLIF(u.department, ''), 'Geral') as department,
         ROUND(AVG(COALESCE(e.progress, 0)), 1) as avg_score
       FROM users u
       INNER JOIN enrollments e ON u.id = e.user_id
       WHERE u.company_id = ?
-      GROUP BY u.id
+      GROUP BY u.id, u.first_name, u.last_name, u.department
       ORDER BY avg_score DESC
       LIMIT 3
     `;
@@ -517,7 +516,7 @@ export async function getCompanyTechnicalStats(companyId: number) {
       talents: talentsRes.rows || []
     };
   } catch (error: any) {
-    console.error("Erro SQL Stats:", error.message);
+    console.error("Erro SQL Técnico:", error.message);
     return { success: false, error: error.message };
   }
 }
