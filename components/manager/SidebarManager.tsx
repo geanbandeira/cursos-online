@@ -2,22 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, BarChart3, LogOut, GraduationCap, Users } from "lucide-react";
+import { LayoutDashboard, BarChart3, LogOut, GraduationCap, Users, Target } from "lucide-react";
 
 export function SidebarManager() {
   const pathname = usePathname();
 
-  const menuItems = [
+const menuItems = [
   { name: "Dashboard", href: "/gestor/dashboard", icon: LayoutDashboard },
   { name: "Análise Técnica", href: "/gestor/relatorio-tecnico", icon: BarChart3 },
-  { name: "Gestão de Time", href: "/gestor/time", icon: Users }, 
+  { name: "Inteligência de Time", href: "/gestor/time", icon: Users },
+  { name: "Mapa de Habilidades", href: "/gestor/habilidades", icon: Target },
 ];
 
   return (
     <aside className="hidden md:flex w-64 bg-[#00324F] text-white flex-col fixed inset-y-0 shadow-2xl z-50">
       <div className="p-8">
-
-        
         <nav className="space-y-2">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;

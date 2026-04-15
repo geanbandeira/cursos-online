@@ -477,30 +477,32 @@ export async function getCompanyTechnicalStats(companyId: number) {
   try {
     const cId = Number(companyId);
 
-    // 1. Ranking por Setor (Lógica direta)
+    // 1. Ranking por Setor: Ignora o curso 11 na média do departamento
     const rankingQuery = `
       SELECT 
         COALESCE(NULLIF(u.department, ''), 'Geral') as department, 
-        ROUND(AVG(COALESCE(e.progress, 0)), 1) as avg_score,
+        ROUND(AVG(CASE WHEN e.course_id != 11 THEN e.progress END), 1) as avg_score,
         COUNT(DISTINCT u.id) as total_students
       FROM users u
       LEFT JOIN enrollments e ON u.id = e.user_id
       WHERE u.company_id = ?
       GROUP BY department
+      HAVING avg_score IS NOT NULL
       ORDER BY avg_score DESC
     `;
 
-    // 2. Talentos (Os 3 alunos com maior progresso)
+    // 2. Talentos: Pega o maior progresso individual EXCLUINDO o curso 11
     const talentsQuery = `
       SELECT 
         u.first_name, 
         u.last_name, 
+        u.email, 
         COALESCE(NULLIF(u.department, ''), 'Geral') as department,
-        ROUND(AVG(COALESCE(e.progress, 0)), 1) as avg_score
+        ROUND(MAX(CASE WHEN e.course_id != 11 THEN e.progress ELSE 0 END), 1) as avg_score
       FROM users u
       INNER JOIN enrollments e ON u.id = e.user_id
-      WHERE u.company_id = ?
-      GROUP BY u.id, u.first_name, u.last_name, u.department
+      WHERE u.company_id = ? AND e.course_id != 11
+      GROUP BY u.id, u.first_name, u.last_name, u.email, u.department
       ORDER BY avg_score DESC
       LIMIT 3
     `;
@@ -547,46 +549,92 @@ export async function getManagerTeamDetailedStats(companyId: number) {
     const sql = `
       SELECT 
         u.id, u.first_name, u.last_name, u.email, u.department, u.last_login, u.created_at,
-        ROUND(AVG(COALESCE(e.progress, 0)), 1) as avg_progress,
-        COUNT(DISTINCT e.id) as total_courses,
+        COALESCE(ROUND(AVG(CASE WHEN e.course_id != 11 THEN e.progress END), 1), 0) as avg_progress,
+        COUNT(DISTINCT CASE WHEN e.course_id != 11 THEN e.id END) as total_courses,
         DATEDIFF(NOW(), COALESCE(u.last_login, u.created_at)) as days_inactive
       FROM users u
       LEFT JOIN enrollments e ON u.id = e.user_id
       WHERE u.company_id = ?
-      GROUP BY u.id
+      GROUP BY u.id, u.first_name, u.last_name, u.email, u.department, u.last_login, u.created_at
       ORDER BY avg_progress DESC
     `;
 
     const { rows } = await query(sql, [companyId]);
 
     return rows.map((row: any) => {
-      // Lógica Preditiva 2026
       let status = "Engajado";
       let statusColor = "text-emerald-500";
-      
-      if (row.days_inactive > 15) { 
-        status = "Risco Crítico"; 
-        statusColor = "text-red-500"; 
-      }
-      else if (row.days_inactive > 7) { 
-        status = "Atenção"; 
-        statusColor = "text-orange-500"; 
-      }
+      let estimatedDays = "Calculando...";
 
-      // Previsão de Conclusão (estimativa baseada em 30 dias de empresa)
-      const daysSinceJoined = Math.max(1, row.days_inactive + 1); 
-      const progressPerDay = row.avg_progress / daysSinceJoined;
-      const daysToFinish = progressPerDay > 0 ? Math.round((100 - row.avg_progress) / progressPerDay) : 999;
+      // PRIORIDADE 1: Se completou 100%, o status é fixo e positivo
+      if (row.avg_progress >= 100) {
+        status = "Concluído";
+        statusColor = "text-blue-600 font-black";
+        estimatedDays = "Finalizado";
+      } 
+      // PRIORIDADE 2: Se não completou, avalia o risco por inatividade
+      else {
+        if (row.days_inactive > 15) { 
+          status = "Risco Crítico"; 
+          statusColor = "text-red-500 font-bold"; 
+        }
+        else if (row.days_inactive > 7) { 
+          status = "Atenção"; 
+          statusColor = "text-orange-500 font-bold"; 
+        }
+
+        const daysSinceJoined = Math.max(1, row.days_inactive + 1); 
+        const progressPerDay = row.avg_progress / daysSinceJoined;
+        const daysToFinish = progressPerDay > 0 ? Math.round((100 - row.avg_progress) / progressPerDay) : 999;
+        
+        estimatedDays = daysToFinish > 180 || row.total_courses === 0 ? "Indefinido" : `${daysToFinish} dias`;
+      }
 
       return {
         ...row,
         status,
         statusColor,
-        estimatedDays: daysToFinish > 180 ? "Indefinido" : `${daysToFinish} dias`
+        estimatedDays
       };
     });
   } catch (error: any) {
     console.error("Erro Team Intel:", error.message);
+    return [];
+  }
+}
+
+export async function getManagerSkillGapAnalysis(companyId: number) {
+  try {
+    const cId = Number(companyId);
+    const META_PROFICIENCIA = 75; // 2026 standard
+
+    const sql = `
+      SELECT 
+        c.title as skill_name,
+        ROUND(AVG(e.progress), 1) as current_level,
+        COUNT(u.id) as total_students,
+        CASE 
+          WHEN AVG(e.progress) >= 75 THEN 'Domínio'
+          WHEN AVG(e.progress) >= 50 THEN 'Em Desenvolvimento'
+          ELSE 'Risco Crítico'
+        END as health_status
+      FROM courses c
+      JOIN enrollments e ON c.id = e.course_id
+      JOIN users u ON e.user_id = u.id
+      WHERE u.company_id = ? AND c.id != 11
+      GROUP BY c.id, c.title
+      ORDER BY current_level ASC
+    `;
+
+    const { rows } = await query(sql, [cId]);
+
+    return rows.map((row: any) => ({
+      ...row,
+      gap: Math.max(0, META_PROFICIENCIA - row.current_level),
+      priority: row.current_level < 40 ? "ALTA" : row.current_level < 70 ? "MÉDIA" : "ESTÁVEL"
+    }));
+  } catch (error: any) {
+    console.error("Erro Skill Gap:", error.message);
     return [];
   }
 }
