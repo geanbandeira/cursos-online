@@ -541,3 +541,52 @@ export async function getManagerCompetencyData(companyId: number) {
     return [];
   }
 }
+
+export async function getManagerTeamDetailedStats(companyId: number) {
+  try {
+    const sql = `
+      SELECT 
+        u.id, u.first_name, u.last_name, u.email, u.department, u.last_login, u.created_at,
+        ROUND(AVG(COALESCE(e.progress, 0)), 1) as avg_progress,
+        COUNT(DISTINCT e.id) as total_courses,
+        DATEDIFF(NOW(), COALESCE(u.last_login, u.created_at)) as days_inactive
+      FROM users u
+      LEFT JOIN enrollments e ON u.id = e.user_id
+      WHERE u.company_id = ?
+      GROUP BY u.id
+      ORDER BY avg_progress DESC
+    `;
+
+    const { rows } = await query(sql, [companyId]);
+
+    return rows.map((row: any) => {
+      // Lógica Preditiva 2026
+      let status = "Engajado";
+      let statusColor = "text-emerald-500";
+      
+      if (row.days_inactive > 15) { 
+        status = "Risco Crítico"; 
+        statusColor = "text-red-500"; 
+      }
+      else if (row.days_inactive > 7) { 
+        status = "Atenção"; 
+        statusColor = "text-orange-500"; 
+      }
+
+      // Previsão de Conclusão (estimativa baseada em 30 dias de empresa)
+      const daysSinceJoined = Math.max(1, row.days_inactive + 1); 
+      const progressPerDay = row.avg_progress / daysSinceJoined;
+      const daysToFinish = progressPerDay > 0 ? Math.round((100 - row.avg_progress) / progressPerDay) : 999;
+
+      return {
+        ...row,
+        status,
+        statusColor,
+        estimatedDays: daysToFinish > 180 ? "Indefinido" : `${daysToFinish} dias`
+      };
+    });
+  } catch (error: any) {
+    console.error("Erro Team Intel:", error.message);
+    return [];
+  }
+}

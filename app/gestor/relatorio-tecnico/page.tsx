@@ -12,29 +12,28 @@ import {
 import Link from "next/link"
 
 export default async function RelatorioTecnicoPage() {
-  // 1. AUTENTICAÇÃO IGUAL AO DASHBOARD (Não falha!)
+  // 1. AUTENTICAÇÃO (Igual ao Dashboard que já funciona)
   const manager = await getCurrentManager();
   if (!manager || !manager.companyId) redirect("/auth/login");
 
-  // 2. BUSCA DE DADOS
+  // 2. BUSCA DE DADOS REAIS NO BANCO
   const stats = await getCompanyTechnicalStats(manager.companyId);
   const ranking = stats.success ? stats.ranking : [];
   const talents = stats.success ? stats.talents : [];
 
+  // 3. CÁLCULO DE SCORE GLOBAL (FIXED: Converte para número para evitar NaN%)
   const globalScore = ranking.length > 0 
     ? Math.round(ranking.reduce((acc: number, curr: any) => acc + Number(curr.avg_score || 0), 0) / ranking.length)
     : 0;
 
   return (
-    <div className="p-8 space-y-8 bg-slate-50 min-h-screen pb-32 font-sans">
-      {/* HEADER */}
+    <div className="p-8 space-y-8 pb-32">
+      
+      {/* HEADER ESTRATÉGICO */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
-          <Link href="/gestor/dashboard" className="flex items-center gap-2 text-slate-400 hover:text-[#00324F] font-black text-[10px] uppercase tracking-tighter mb-2">
-            <ChevronLeft size={14} /> Painel de Gestão
-          </Link>
           <h1 className="text-4xl font-black text-[#00324F] tracking-tighter uppercase leading-none">Análise Técnica</h1>
-          <p className="text-slate-500 font-medium">Empresa: <span className="font-bold text-[#00324F]">{manager.companyName}</span></p>
+          <p className="text-slate-500 font-medium">Monitoramento: <span className="font-bold text-[#00324F] uppercase">{manager.companyName}</span></p>
         </div>
         <ExportButtons 
           participationData={ranking} 
@@ -49,17 +48,17 @@ export default async function RelatorioTecnicoPage() {
           <Card className="md:col-span-2 border-none shadow-2xl bg-[#00324F] text-white rounded-[2.5rem] overflow-hidden relative">
             <div className="absolute right-[-10px] top-[-10px] opacity-10"><Target size={180} /></div>
             <CardContent className="p-10">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-300 mb-6">Proficiência Técnica Global</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-300 mb-6">Score de Domínio Técnico Global</p>
               <div className="flex items-baseline gap-4">
                 <span className="text-8xl font-black tracking-tighter">{globalScore}%</span>
-                <Badge className="bg-emerald-500 text-white font-black px-4 py-1 rounded-full text-xs uppercase"> 2026</Badge>
+                <Badge className="bg-emerald-500 text-white font-black px-4 py-1 rounded-full text-xs uppercase">Validado 2026</Badge>
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-none shadow-xl bg-white rounded-[2.5rem] p-10 flex flex-col items-center justify-center text-center">
             <div className="bg-blue-50 p-4 rounded-3xl mb-4"><Users className="text-blue-600 w-8 h-8" /></div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Setores Identificados</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">Departamentos<br/>Ativos</p>
             <p className="text-5xl font-black text-[#00324F] mt-2">{ranking.length}</p>
           </Card>
         </div>
@@ -80,7 +79,7 @@ export default async function RelatorioTecnicoPage() {
                     <span className="text-3xl font-black text-slate-200 group-hover:text-blue-200 transition-colors">0{i+1}</span>
                     <div>
                       <p className="font-black text-[#00324F] uppercase text-sm">{s.department}</p>
-                      <p className="text-[9px] font-bold text-slate-400 tracking-widest">{s.total_students} ALUNOS CADASTRADOS</p>
+                      <p className="text-[9px] font-bold text-slate-400 tracking-widest">{s.total_students} COLABORADORES</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -92,7 +91,7 @@ export default async function RelatorioTecnicoPage() {
                 </div>
               )) : (
                 <div className="text-center py-20 bg-slate-50 rounded-[2rem] border-2 border-dashed">
-                  <p className="text-slate-400 font-black text-xs tracking-widest uppercase">Nenhum dado capturado no banco para {manager.companyName}</p>
+                  <p className="text-slate-400 font-black text-xs tracking-widest uppercase">Nenhum dado capturado para {manager.companyName}</p>
                 </div>
               )}
             </CardContent>
@@ -102,7 +101,7 @@ export default async function RelatorioTecnicoPage() {
           <div className="space-y-6">
             <div className="flex items-center gap-2 px-2">
               <Trophy className="text-yellow-500" size={20} />
-              <h2 className="text-xs font-black text-[#00324F] uppercase tracking-[0.2em]">Top 3 Talentos</h2>
+              <h2 className="text-xs font-black text-[#00324F] uppercase tracking-[0.2em]">Top Talentos</h2>
             </div>
             
             {talents.length > 0 ? talents.map((t: any, i: number) => (
@@ -119,13 +118,13 @@ export default async function RelatorioTecnicoPage() {
                   <p className="text-[10px] font-bold text-slate-400 uppercase mt-2 tracking-widest">{t.department}</p>
                   <div className="mt-8 pt-6 border-t border-slate-50">
                      <div className="flex items-center gap-1 text-[10px] font-black text-blue-600 uppercase tracking-widest">
-                       Domínio Técnico Confirmado <ArrowUpRight size={14} />
+                       Matriz de Domínio Técnica <ArrowUpRight size={14} />
                      </div>
                   </div>
                 </CardContent>
               </Card>
             )) : (
-              <p className="text-center text-[10px] font-black text-slate-300 uppercase tracking-widest pt-10">Aguardando dados de matrícula...</p>
+              <p className="text-center text-[10px] font-black text-slate-300 uppercase tracking-widest pt-10 italic">Processando talentos...</p>
             )}
           </div>
         </div>
