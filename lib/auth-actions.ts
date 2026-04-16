@@ -588,12 +588,24 @@ export async function getCompaniesWithManagers() {
   }
 }
 
-// Deleta empresa
+// lib/auth-actions.ts
+
 export async function deleteCompanyAction(id: number) {
   try {
+    // 1. Primeiro, "resetamos" os gestores e alunos dessa empresa.
+    // Alteramos o cargo para 'student' e removemos o ID da empresa.
+    // Isso faz com que eles sumam da aba de Gestores e da aba de Empresa.
+    await query(
+      "UPDATE users SET role = 'student', company_id = NULL WHERE company_id = ?", 
+      [id]
+    );
+
+    // 2. Agora, com os usuários desvinculados, podemos deletar a empresa com segurança.
     await query("DELETE FROM companies WHERE id = ?", [id]);
+
     return { success: true };
   } catch (error: any) {
+    console.error("Erro ao deletar empresa e desvincular gestores:", error.message);
     return { success: false, error: error.message };
   }
 }
