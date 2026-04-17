@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; // Adicionado useRouter
+import { useAuth } from "@/contexts/AuthContext"; // Adicionado useAuth
+import { signOutAction } from "@/lib/auth-actions"; // Adicionado signOutAction
 import { 
   Users, 
   Building2, 
@@ -13,6 +15,20 @@ import {
 
 export function SidebarAdmin() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { setUser } = useAuth(); // Para limpar o usuário no navegador
+
+  // FUNÇÃO QUE FAZ O BOTÃO FUNCIONAR
+  const handleLogout = async () => {
+    try {
+      await signOutAction(); // Deleta o cookie no servidor
+      setUser(null); // Limpa o estado no cliente
+      router.push("/auth/login"); // Manda pro login
+      router.refresh(); // Atualiza a página
+    } catch (error) {
+      console.error("Erro ao deslogar:", error);
+    }
+  };
 
   const menuItems = [
     { name: "Lista de Usuários", href: "/admin/users", icon: Users },
@@ -56,10 +72,15 @@ export function SidebarAdmin() {
         <Link href="/my-courses" className="flex items-center gap-3 px-4 py-3 text-slate-400 font-bold text-[11px] uppercase hover:text-white transition-all">
           <ArrowLeft size={18} /> Voltar ao Site
         </Link>
-        <button className="flex items-center gap-3 px-4 py-3 text-red-400 font-bold text-[11px] uppercase hover:text-red-300 transition-all w-full text-left">
+        
+        {/* BOTÃO COM O ONCLICK ADICIONADO */}
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 text-red-400 font-bold text-[11px] uppercase hover:text-red-300 transition-all w-full text-left cursor-pointer"
+        >
           <LogOut size={18} /> Sair Admin
         </button>
       </div>
     </aside>
   );
-}
+} 

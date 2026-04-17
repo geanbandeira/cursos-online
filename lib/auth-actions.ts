@@ -609,3 +609,10 @@ export async function deleteCompanyAction(id: number) {
     return { success: false, error: error.message };
   }
 }
+
+export async function signOutAction() {
+  const cookieStore = cookies();
+  // Remove o cookie que mantém a sessão ativa
+  cookieStore.delete("accessToken");
+  return { success: true };
+}
