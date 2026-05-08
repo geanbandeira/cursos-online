@@ -50,6 +50,8 @@ interface Lesson {
   description: string
   vimeo_id: string
   vimeo_url: string
+  bunny_id?: string
+  bunny_library_id?: string
   lesson_order: number
   duration: string
   is_preview: boolean
@@ -73,7 +75,7 @@ export async function getMyCertificatesAction(userId: string) {
 export default function CoursePage() {
   const params = useParams()
   const courseId = params.id as string
-  const isFreeCourse = courseId === "11"; 
+  const isFreeCourse = courseId === "11";
 
   const [course, setCourse] = useState<Course | null>(null)
   const [lessons, setLessons] = useState<Lesson[]>([])
@@ -207,77 +209,77 @@ export default function CoursePage() {
   }, [])
 
   const handleLessonSelect = (lesson: Lesson) => {
-  if (lesson.is_preview || isEnrolled || lesson.lesson_order <= 3) {
-    setSelectedLesson(lesson)
-  } else {
-    setShowPurchaseModal(true)
+    if (lesson.is_preview || isEnrolled || lesson.lesson_order <= 3) {
+      setSelectedLesson(lesson)
+    } else {
+      setShowPurchaseModal(true)
+    }
   }
-}
 
 
 
   // Defina isso logo no início do componente CoursePage (perto de isFreeCourse)
-const isRestricted = courseId === "9" || courseId === "10";
+  const isRestricted = courseId === "9" || courseId === "10";
 
-const canAccessLesson = (lesson: Lesson) => {
-  // 1. Se estiver matriculado, acessa tudo
-  if (isEnrolled) return true;
+  const canAccessLesson = (lesson: Lesson) => {
+    // 1. Se estiver matriculado, acessa tudo
+    if (isEnrolled) return true;
 
-  // 2. Se for curso 9 ou 10, obedece APENAS ao banco de dados (is_preview)
-  if (isRestricted) {
-    return !!lesson.is_preview;
+    // 2. Se for curso 9 ou 10, obedece APENAS ao banco de dados (is_preview)
+    if (isRestricted) {
+      return !!lesson.is_preview;
+    }
+
+    // 3. Se for o curso 11 (Grátis), bloqueia para não logados
+    if (isFreeCourse) return false;
+
+    // 4. Regra padrão para outros cursos: libera se estiver no BD ou se for uma das 3 primeiras
+    return !!lesson.is_preview || lesson.lesson_order <= 3;
   }
-
-  // 3. Se for o curso 11 (Grátis), bloqueia para não logados
-  if (isFreeCourse) return false;
-
-  // 4. Regra padrão para outros cursos: libera se estiver no BD ou se for uma das 3 primeiras
-  return !!lesson.is_preview || lesson.lesson_order <= 3;
-}
 
 
   const PurchaseModal = () => {
-  if (!showPurchaseModal || !course) return null;
+    if (!showPurchaseModal || !course) return null;
 
-  // DESIGN 2026 para o curso grátis
-  if (isFreeCourse) {
-    return (
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-xl flex items-center justify-center z-[100] p-4">
-        <div className="bg-white rounded-[2.5rem] max-w-md w-full p-10 text-center shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] border border-gray-100">
-          <div className="w-24 h-24 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-8 rotate-3">
-            <GraduationCap className="w-12 h-12 text-[#00324F] -rotate-3" />
+    // DESIGN 2026 para o curso grátis
+    if (isFreeCourse) {
+      return (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xl flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-[2.5rem] max-w-md w-full p-10 text-center shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] border border-gray-100">
+            <div className="w-24 h-24 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-8 rotate-3">
+              <GraduationCap className="w-12 h-12 text-[#00324F] -rotate-3" />
+            </div>
+
+            <h2 className="text-3xl font-black text-gray-900 mb-4 leading-tight">
+              Continue sua Jornada!
+            </h2>
+            <p className="text-gray-600 mb-10 text-lg leading-relaxed">
+              As aulas seguintes são exclusivas para alunos cadastrados. É rápido, fácil e <span className="font-bold text-[#00324F]">totalmente gratuito</span>.
+            </p>
+
+            <div className="space-y-4">
+              <Link href="/auth/register">
+                <Button className="w-full bg-[#00324F] py-8 rounded-2xl font-black text-lg hover:bg-[#004A75] shadow-lg shadow-blue-900/20 transition-all">
+                  CRIAR CONTA AGORA
+                </Button>
+              </Link>
+              <Link href="/auth/login">
+                <Button variant="ghost" className="w-full text-gray-500 font-bold hover:bg-gray-50 py-6">
+                  Já tenho uma conta
+                </Button>
+              </Link>
+            </div>
+
+            <button
+              onClick={() => setShowPurchaseModal(false)}
+              className="mt-8 text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest"
+            >
+              Voltar ao início
+            </button>
           </div>
-          
-          <h2 className="text-3xl font-black text-gray-900 mb-4 leading-tight">
-            Continue sua Jornada!
-          </h2>
-          <p className="text-gray-600 mb-10 text-lg leading-relaxed">
-            As aulas seguintes são exclusivas para alunos cadastrados. É rápido, fácil e <span className="font-bold text-[#00324F]">totalmente gratuito</span>.
-          </p>
-          
-          <div className="space-y-4">
-            <Link href="/auth/register">
-              <Button className="w-full bg-[#00324F] py-8 rounded-2xl font-black text-lg hover:bg-[#004A75] shadow-lg shadow-blue-900/20 transition-all">
-                CRIAR CONTA AGORA
-              </Button>
-            </Link>
-            <Link href="/auth/login">
-              <Button variant="ghost" className="w-full text-gray-500 font-bold hover:bg-gray-50 py-6">
-                Já tenho uma conta
-              </Button>
-            </Link>
-          </div>
-          
-          <button 
-            onClick={() => setShowPurchaseModal(false)} 
-            className="mt-8 text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest"
-          >
-            Voltar ao início
-          </button>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
 
 
@@ -660,69 +662,69 @@ const canAccessLesson = (lesson: Lesson) => {
       />
 
       {/* Header Master Project 2026 - Corrigido */}
-<header className="bg-white border-b border-gray-100 sticky top-0 z-[50] w-full h-20 sm:h-24 shadow-sm">
-  <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 h-full">
-    <div className="flex justify-between items-center h-full gap-4">
-      
-      {/* LADO ESQUERDO: Menu e Logo */}
-      <div className="flex items-center space-x-4 sm:space-x-8">
-        {/* Hamburger Menu com Z-index isolado */}
-        <div className="relative z-[60]">
-          <MobileNav 
-            completedLessons={userProgress?.completed || 0} 
-            totalLessons={userProgress?.total || 0} 
-          />
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-[50] w-full h-20 sm:h-24 shadow-sm">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 h-full">
+          <div className="flex justify-between items-center h-full gap-4">
+
+            {/* LADO ESQUERDO: Menu e Logo */}
+            <div className="flex items-center space-x-4 sm:space-x-8">
+              {/* Hamburger Menu com Z-index isolado */}
+              <div className="relative z-[60]">
+                <MobileNav
+                  completedLessons={userProgress?.completed || 0}
+                  totalLessons={userProgress?.total || 0}
+                />
+              </div>
+
+              <Link href="/" className="flex-shrink-0">
+                <img
+                  src="/logo-master-project.png"
+                  alt="Master Project"
+                  className="h-12 sm:h-16 w-auto transition-transform hover:scale-105"
+                />
+              </Link>
+
+              {/* Info do Curso - Visível apenas em telas maiores para não "quebrar" */}
+              <div className="hidden lg:block border-l border-gray-200 pl-8">
+                <h1 className="text-lg font-black text-[#00324F] uppercase tracking-tight line-clamp-1">
+                  {course.title}
+                </h1>
+                <p className="text-xs text-blue-600 font-bold tracking-widest uppercase">
+                  {course.instructor}
+                </p>
+              </div>
+            </div>
+
+            {/* LADO DIREITO: Ações e Perfil */}
+            <div className="flex items-center space-x-3 sm:space-x-6">
+              {/* Botão de Voltar (Estratégico) */}
+              <Link href="/my-courses" className="hidden sm:block">
+                <Button variant="ghost" className="text-gray-500 font-bold hover:text-[#00324F]">
+                  <ChevronLeft className="w-5 h-5 mr-1" /> Painel
+                </Button>
+              </Link>
+
+              {/* Badge de Nível */}
+              <Badge variant="secondary" className="hidden md:flex bg-gray-100 font-black px-4 py-1.5">
+                {course.level}
+              </Badge>
+
+              {/* Perfil do Aluno Minimimalista */}
+              {user && (
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-200">
+                  {user?.avatar_url ? (
+                    <img src={user.avatar_url} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="flex items-center justify-center h-full font-bold">
+                      {user?.name?.[0]}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-
-        <Link href="/" className="flex-shrink-0">
-          <img
-            src="/logo-master-project.png"
-            alt="Master Project"
-            className="h-12 sm:h-16 w-auto transition-transform hover:scale-105"
-          />
-        </Link>
-
-        {/* Info do Curso - Visível apenas em telas maiores para não "quebrar" */}
-        <div className="hidden lg:block border-l border-gray-200 pl-8">
-          <h1 className="text-lg font-black text-[#00324F] uppercase tracking-tight line-clamp-1">
-            {course.title}
-          </h1>
-          <p className="text-xs text-blue-600 font-bold tracking-widest uppercase">
-            {course.instructor}
-          </p>
-        </div>
-      </div>
-
-      {/* LADO DIREITO: Ações e Perfil */}
-      <div className="flex items-center space-x-3 sm:space-x-6">
-        {/* Botão de Voltar (Estratégico) */}
-        <Link href="/my-courses" className="hidden sm:block">
-          <Button variant="ghost" className="text-gray-500 font-bold hover:text-[#00324F]">
-            <ChevronLeft className="w-5 h-5 mr-1" /> Painel
-          </Button>
-        </Link>
-
-        {/* Badge de Nível */}
-        <Badge variant="secondary" className="hidden md:flex bg-gray-100 font-black px-4 py-1.5">
-          {course.level}
-        </Badge>
-
-        {/* Perfil do Aluno Minimimalista */}
-        {user && (
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-200">
-  {user?.avatar_url ? (
-    <img src={user.avatar_url} className="w-full h-full object-cover" />
-  ) : (
-    <span className="flex items-center justify-center h-full font-bold">
-      {user?.name?.[0]}
-    </span>
-  )}
-</div>
-        )}
-      </div>
-    </div>
-  </div>
-</header>
+      </header>
 
       <div className="flex flex-col lg:flex-row h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)]">
         {/* Sidebar - Lista de Lições */}
@@ -836,102 +838,115 @@ const canAccessLesson = (lesson: Lesson) => {
         </div>
 
         {/* Main Content - Video Player */}
-        <div className="flex-1 flex flex-col order-1 lg:order-2 w-full">
-          <div className="flex-1 bg-white relative w-full h-[60vh] lg:h-full">
-            {selectedLesson ? (
-  <div className="w-full h-full">
-    {selectedLesson.vimeo_id && canAccessLesson(selectedLesson) ? (
-      <iframe
-        key={selectedLesson.id}
-        src={`https://player.vimeo.com/video/${selectedLesson.vimeo_id}?h=0&title=0&byline=0&portrait=0&autoplay=1`}
-        className="w-full h-full"
-        frameBorder="0"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowFullScreen
-        title={selectedLesson.title}
-      />
+<div className="flex-1 flex flex-col order-1 lg:order-2 w-full">
+  <div className="flex-1 bg-white relative w-full h-[60vh] lg:h-full">
+    {selectedLesson ? (
+      <div className="w-full h-full">
+        {/* Prioridade 1: Bunny.net (se existir bunny_id e tiver acesso) */}
+        {selectedLesson.bunny_id && canAccessLesson(selectedLesson) ? (
+          <div className="w-full h-full" style={{ position: 'relative', paddingTop: '56.25%' }}>
+            <iframe
+              src={`https://iframe.mediadelivery.net/embed/${selectedLesson.bunny_library_id}/${selectedLesson.bunny_id}?autoplay=true&loop=false&muted=false&preload=true&responsive=true`}
+              loading="lazy"
+              style={{ border: 0, position: 'absolute', top: 0, height: '100%', width: '100%' }}
+              allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen"
+              title={selectedLesson.title}
+            />
+          </div>
+        ) : 
+        /* Prioridade 2: Vimeo (fallback para aulas antigas) */
+        selectedLesson.vimeo_id && canAccessLesson(selectedLesson) ? (
+          <iframe
+            key={selectedLesson.id}
+            src={`https://player.vimeo.com/video/${selectedLesson.vimeo_id}?h=0&title=0&byline=0&portrait=0&autoplay=1`}
+            className="w-full h-full"
+            frameBorder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            title={selectedLesson.title}
+          />
+        ) : (
+          /* Visual de Bloqueio Personalizado 2026 (Se não tiver acesso ou ids) */
+          <div className="flex items-center justify-center h-full bg-slate-50/50 backdrop-blur-md">
+            <div className="text-center p-8 max-w-sm">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-[#00324F]/5 blur-3xl rounded-full"></div>
+                <Lock className="w-20 h-20 mx-auto text-[#00324F] opacity-20 relative z-10" />
+              </div>
+
+              <h2 className="text-2xl font-black text-gray-900 mb-3 tracking-tight">
+                {isFreeCourse ? "Acesso Gratuito Exclusivo" : "Conteúdo Bloqueado"}
+              </h2>
+              <p className="text-gray-500 font-medium leading-relaxed">
+                {isFreeCourse 
+                  ? "Esta Aula é gratuita! Para assistir e interagir, você só precisa entrar na sua conta ou se cadastrar agora." 
+                  : "Este conteúdo é exclusivo para alunos matriculados. Faça o cadastro para liberar o acesso."}
+              </p>
+
+              <div className="mt-8 space-y-3">
+                {isFreeCourse ? (
+                  <>
+                    <Link href="/auth/register" className="block w-full">
+                      <Button className="w-full bg-[#00324F] hover:bg-[#004A75] text-white font-black py-7 rounded-2xl shadow-xl transition-all active:scale-95">
+                        CRIAR MINHA CONTA GRÁTIS
+                      </Button>
+                    </Link>
+                    <Link href="/auth/login" className="block w-full">
+                      <Button variant="ghost" className="w-full text-gray-400 font-bold py-4">
+                        Já tenho conta, entrar
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => setShowPurchaseModal(true)}
+                    className="w-full bg-[#00324F] hover:bg-[#004A75] text-white font-black py-7 rounded-2xl shadow-xl"
+                  >
+                    ADQUIRIR CURSO
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     ) : (
-      /* ABAIXO: Visual de Bloqueio Personalizado 2026 */
-      <div className="flex items-center justify-center h-full bg-slate-50/50 backdrop-blur-md">
-        <div className="text-center p-8 max-w-sm">
-          <div className="relative mb-6">
-            <div className="absolute inset-0 bg-[#00324F]/5 blur-3xl rounded-full"></div>
-            <Lock className="w-20 h-20 mx-auto text-[#00324F] opacity-20 relative z-10" />
-          </div>
-
-          <h2 className="text-2xl font-black text-gray-900 mb-3 tracking-tight">
-            {isFreeCourse ? "Acesso Gratuito Exclusivo" : "Conteúdo Bloqueado"}
-          </h2>
-          <p className="text-gray-500 font-medium leading-relaxed">
-            {isFreeCourse 
-              ? "Esta Aula é gratuita! Para assistir e interagir, você só precisa entrar na sua conta ou se cadastrar agora." 
-              : "Este conteúdo é exclusivo para alunos matriculados. Faça o cadastro para liberar o acesso."}
-          </p>
-
-          <div className="mt-8 space-y-3">
-            {isFreeCourse ? (
-              <>
-                <Link href="/auth/register" className="block w-full">
-                  <Button className="w-full bg-[#00324F] hover:bg-[#004A75] text-white font-black py-7 rounded-2xl shadow-xl transition-all active:scale-95">
-                    CRIAR MINHA CONTA GRÁTIS
-                  </Button>
-                </Link>
-                <Link href="/auth/login" className="block w-full">
-                  <Button variant="ghost" className="w-full text-gray-400 font-bold py-4">
-                    Já tenho conta, entrar
-                  </Button>
-                </Link>
-              </>
-            ) : (
-              <Button
-                onClick={() => setShowPurchaseModal(true)}
-                className="w-full bg-[#00324F] hover:bg-[#004A75] text-white font-black py-7 rounded-2xl shadow-xl"
-              >
-                ADQUIRIR CURSO
-              </Button>
-            )}
-          </div>
+      /* Mensagem quando nenhuma aula está selecionada */
+      <div className="flex items-center justify-center h-full text-gray-900">
+        <div className="text-center">
+          <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+          <h2 className="text-2xl font-semibold mb-2">Selecione uma aula</h2>
+          <p className="text-gray-600">Escolha um conteúdo ao lado para começar.</p>
         </div>
       </div>
     )}
   </div>
-) : (
-  /* Mensagem quando nenhuma aula está selecionada */
-  <div className="flex items-center justify-center h-full text-gray-900">
-    <div className="text-center">
-      <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-      <h2 className="text-2xl font-semibold mb-2">Selecione uma aula</h2>
-      <p className="text-gray-600">Escolha um conteúdo ao lado para começar.</p>
-    </div>
-  </div>
-)}
-          </div>
 
           {/* Banner de Conversão para Curso Grátis */}
-{isFreeCourse && !user && (
-  <div className="max-w-4xl mx-auto mt-8 mb-8 p-1">
-    <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#00324F] via-[#004A75] to-[#001F33] p-8 shadow-2xl">
-      {/* Detalhe visual de fundo */}
-      <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-400/10 rounded-full blur-3xl"></div>
-      
-      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="text-center md:text-left">
-          <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-2">
-            🚀 Acesso Total Liberado
-          </h3>
-          <p className="text-blue-100/80 text-lg font-medium">
-            Crie sua conta grátis para desbloquear o curso completo.
-          </p>
-        </div>
-        <Link href="/auth/register">
-          <Button className="bg-white text-[#00324F] hover:bg-blue-50 text-lg font-black px-10 py-8 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95">
-            CADASTRAR GRÁTIS
-          </Button>
-        </Link>
-      </div>
-    </div>
-  </div>
-)}
+          {isFreeCourse && !user && (
+            <div className="max-w-4xl mx-auto mt-8 mb-8 p-1">
+              <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#00324F] via-[#004A75] to-[#001F33] p-8 shadow-2xl">
+                {/* Detalhe visual de fundo */}
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-400/10 rounded-full blur-3xl"></div>
+
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                  <div className="text-center md:text-left">
+                    <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-2">
+                      🚀 Acesso Total Liberado
+                    </h3>
+                    <p className="text-blue-100/80 text-lg font-medium">
+                      Crie sua conta grátis para desbloquear o curso completo.
+                    </p>
+                  </div>
+                  <Link href="/auth/register">
+                    <Button className="bg-white text-[#00324F] hover:bg-blue-50 text-lg font-black px-10 py-8 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95">
+                      CADASTRAR GRÁTIS
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Video Info */}
           {selectedLesson && (

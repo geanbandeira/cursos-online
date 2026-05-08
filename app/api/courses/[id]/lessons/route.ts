@@ -1,5 +1,6 @@
 import { sql } from "@/lib/database"
 import { NextResponse } from "next/server"
+export const dynamic = 'force-dynamic';
 
 // GET - Listar aulas de um curso
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -8,7 +9,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     const lessons = await sql`
       SELECT 
-        id, title, description, vimeo_id, vimeo_url,
+        id, title, description, vimeo_id, vimeo_url, bunny_id, bunny_library_id,
         lesson_order, duration, is_preview
       FROM lessons 
       WHERE course_id = ${courseId}
