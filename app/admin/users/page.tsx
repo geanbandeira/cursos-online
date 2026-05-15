@@ -1,5 +1,5 @@
 "use client"
-
+import { syncExistingUserPhones } from "@/lib/auth-actions" // Importe a função
 import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 // IMPORT CORRIGIDO: Funções de usuário ficam em auth-actions
@@ -59,6 +59,19 @@ export default function AdminUsersPage() {
     }
     setLoading(false);
   };
+
+  const handleSyncPhones = async () => {
+  if (!confirm("Deseja sincronizar os telefones do Cognito agora?")) return;
+  setLoading(true);
+  const res = await syncExistingUserPhones();
+  if (res.success) {
+    alert("Sincronização concluída com sucesso!");
+    fetchData(); // Atualiza a tabela
+  } else {
+    alert("Erro: " + res.error);
+  }
+  setLoading(false);
+};
 
   const fetchData = async () => {
     if (!user?.email) return
@@ -152,6 +165,14 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
+        <Button 
+  variant="outline" 
+  onClick={handleSyncPhones} 
+  className="rounded-xl border-orange-200 text-orange-600 hover:bg-orange-50 font-black text-[10px] uppercase"
+>
+  <RefreshCw className="w-4 h-4 mr-2" /> Sincronizar AWS/DB
+</Button>
+
         {/* 2. CARDS DE RESUMO (STATS) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="border-none shadow-sm rounded-2xl bg-white overflow-hidden group">
@@ -235,6 +256,19 @@ export default function AdminUsersPage() {
                         {u.first_name} {u.last_name}
                       </div>
                       <div className="text-xs font-bold text-slate-400 lowercase mb-3">{u.email}</div>
+  
+  {/* EXIBIÇÃO DO TELEFONE */}
+  {u.phone && (
+    <a 
+      href={`https://wa.me/${u.phone.replace(/\D/g, '')}`} 
+      target="_blank" 
+      rel="noreferrer"
+      className="flex items-center gap-1.5 text-[11px] font-black text-emerald-500 hover:text-emerald-600 transition-colors uppercase tracking-widest mt-1"
+    >
+      <i className="fa-brands fa-whatsapp text-sm"></i>
+      {u.phone}
+    </a>
+  )}
 
                       {/* NOVAS DATAS DE ACESSO */}
                       <div className="flex flex-wrap items-center gap-4">

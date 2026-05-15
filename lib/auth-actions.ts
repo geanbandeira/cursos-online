@@ -10,10 +10,17 @@ import {
   GetUserCommand,
 } from "@aws-sdk/client-cognito-identity-provider"
 import { query } from "./database"
+import { ListUsersCommand } from "@aws-sdk/client-cognito-identity-provider"
 import { cookies } from "next/headers";
 
+
 const client = new CognitoIdentityProviderClient({
-  region: "us-east-1", // Ajuste para sua região
+  region: process.env.AWS_REGION || "us-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    sessionToken: process.env.AWS_SESSION_TOKEN || '', // Essencial para SSO/Credenciais Temporárias
+  }
 })
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
@@ -27,7 +34,7 @@ function calculateSecretHash(username: string): string {
 }
 
 // Localize a função saveUserToDatabase e adicione a parte da matrícula
-export async function saveUserToDatabase(email: string, name: string) {
+export async function saveUserToDatabase(email: string, name: string, phone: string) {
   try {
     const nameParts = name.trim().split(" ")
     const firstName = nameParts[0] || ""
@@ -35,9 +42,9 @@ export async function saveUserToDatabase(email: string, name: string) {
 
     // 1. Cria o usuário
     const result = await query(
-      `INSERT INTO users (email, first_name, last_name, is_active, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, NOW(), NOW())`,
-      [email, firstName, lastName, 1],
+      `INSERT INTO users (email, phone, first_name, last_name, is_active, created_at, updated_at) 
+       VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
+      [email, phone, firstName, lastName, 1],
     )
 
     // 2. PEGA O ID DO USUÁRIO QUE ACABOU DE SER CRIADO
@@ -65,6 +72,39 @@ export async function saveUserToDatabase(email: string, name: string) {
   }
 }
 
+export async function syncExistingUserPhones() {
+  try {
+    // 1. Busca a lista de usuários no Cognito
+    const command = new ListUsersCommand({
+      UserPoolId: process.env.COGNITO_USER_POOL_ID, // Certifique-se que tem essa env
+    })
+
+    const response = await client.send(command)
+    const cognitoUsers = response.Users || []
+
+    console.log(`[Sync] Iniciando sincronização de ${cognitoUsers.length} usuários...`)
+
+    for (const user of cognitoUsers) {
+      const emailAttr = user.Attributes?.find(a => a.Name === 'email')?.Value
+      const phoneAttr = user.Attributes?.find(a => a.Name === 'phone_number')?.Value
+
+      if (emailAttr && phoneAttr) {
+        // 2. Atualiza o banco de dados MySQL
+        await query(
+          "UPDATE users SET phone = ? WHERE email = ? AND phone IS NULL",
+          [phoneAttr, emailAttr]
+        )
+        console.log(`[Sync] Telefone atualizado para: ${emailAttr}`)
+      }
+    }
+
+    return { success: true, message: "Sincronização concluída!" }
+  } catch (error: any) {
+    console.error("[Sync] Erro:", error.message)
+    return { success: false, error: error.message }
+  }
+}
+
 export async function getAllUsers(adminEmail: string) {
   try {
     // 1. Verifica permissão de admin
@@ -76,7 +116,7 @@ export async function getAllUsers(adminEmail: string) {
     // 2. Busca usuários com last_login e progresso
     const result = await query(
       `SELECT 
-        u.id, u.email, u.first_name, u.last_name, u.role, u.created_at, u.last_login, u.department, u.company_id,
+        u.id, u.email, u.phone, u.first_name, u.last_name, u.role, u.created_at, u.last_login, u.department, u.company_id,
         (
           SELECT JSON_ARRAYAGG(
             JSON_OBJECT(
@@ -139,7 +179,7 @@ export async function signUpAction(email: string, password: string, name: string
     // Tentar salvar no banco de dados após sucesso no Cognito
     if (response) {
       console.log("[v0] Tentando salvar no banco de dados...")
-      const dbResult = await saveUserToDatabase(email, name)
+      const dbResult = await saveUserToDatabase(email, name, phone)
 
       if (dbResult.success) {
         console.log("[v0] Usuário salvo no banco com sucesso!")
