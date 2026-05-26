@@ -837,70 +837,58 @@ export default function CoursePage() {
           </div>
         </div>
 
-        {/* Main Content - Video Player */}
-<div className="flex-1 flex flex-col order-1 lg:order-2 w-full">
-  <div className="flex-1 bg-white relative w-full h-[60vh] lg:h-full">
+      
+      {/* Main Content - Video Player */}
+<div className="flex-1 flex flex-col order-1 lg:order-2 w-full min-h-[250px] sm:min-h-0 overflow-y-auto bg-gray-50 pb-12">
+  
+  {/* Container do Vídeo: adaptável para qualquer tela (mobile, tablet ou desktop) */}
+  <div className="w-full bg-black max-w-3xl mx-auto my-2 sm:my-4 sm:rounded-xl overflow-hidden shadow-md aspect-video relative flex items-center justify-center">
     {selectedLesson ? (
-      <div className="w-full h-full">
-        {/* Prioridade 1: Bunny.net (se existir bunny_id e tiver acesso) */}
+      <div className="absolute inset-0 w-full h-full">
+        {/* Prioridade 1: Bunny.net */}
         {selectedLesson.bunny_id && canAccessLesson(selectedLesson) ? (
-          <div className="w-full h-full" style={{ position: 'relative', paddingTop: '56.25%' }}>
-            <iframe
-              src={`https://iframe.mediadelivery.net/embed/${selectedLesson.bunny_library_id}/${selectedLesson.bunny_id}?autoplay=true&loop=false&muted=false&preload=true&responsive=true`}
-              loading="lazy"
-              style={{ border: 0, position: 'absolute', top: 0, height: '100%', width: '100%' }}
-              allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen"
-              title={selectedLesson.title}
-            />
-          </div>
+          <iframe
+            src={`https://iframe.mediadelivery.net/embed/${selectedLesson.bunny_library_id}/${selectedLesson.bunny_id}?autoplay=true&loop=false&muted=false&preload=true&responsive=true`}
+            loading="lazy"
+            className="w-full h-full border-0 block absolute inset-0"
+            allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen"
+            title={selectedLesson.title}
+          />
         ) : 
-        /* Prioridade 2: Vimeo (fallback para aulas antigas) */
+        /* Prioridade 2: Vimeo (fallback) */
         selectedLesson.vimeo_id && canAccessLesson(selectedLesson) ? (
           <iframe
             key={selectedLesson.id}
             src={`https://player.vimeo.com/video/${selectedLesson.vimeo_id}?h=0&title=0&byline=0&portrait=0&autoplay=1`}
-            className="w-full h-full"
-            frameBorder="0"
+            className="w-full h-full border-0 block absolute inset-0"
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
             title={selectedLesson.title}
           />
         ) : (
-          /* Visual de Bloqueio Personalizado 2026 (Se não tiver acesso ou ids) */
-          <div className="flex items-center justify-center h-full bg-slate-50/50 backdrop-blur-md">
-            <div className="text-center p-8 max-w-sm">
-              <div className="relative mb-6">
-                <div className="absolute inset-0 bg-[#00324F]/5 blur-3xl rounded-full"></div>
-                <Lock className="w-20 h-20 mx-auto text-[#00324F] opacity-20 relative z-10" />
-              </div>
-
-              <h2 className="text-2xl font-black text-gray-900 mb-3 tracking-tight">
+          /* Visual de Bloqueio Personalizado */
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-50/50 backdrop-blur-md p-4">
+            <div className="text-center max-w-sm">
+              <Lock className="w-8 h-8 mx-auto text-[#00324F] opacity-40 mb-1" />
+              <h2 className="text-sm font-black text-gray-900 mb-1 tracking-tight">
                 {isFreeCourse ? "Acesso Gratuito Exclusivo" : "Conteúdo Bloqueado"}
               </h2>
-              <p className="text-gray-500 font-medium leading-relaxed">
+              <p className="text-[10px] sm:text-xs text-gray-500 font-medium leading-relaxed mb-2 sm:mb-3">
                 {isFreeCourse 
-                  ? "Esta Aula é gratuita! Para assistir e interagir, você só precisa entrar na sua conta ou se cadastrar agora." 
-                  : "Este conteúdo é exclusivo para alunos matriculados. Faça o cadastro para liberar o acesso."}
+                  ? "Esta Aula é gratuita! Para assistir, você só precisa entrar na sua conta." 
+                  : "Este conteúdo é exclusivo para alunos matriculados."}
               </p>
-
-              <div className="mt-8 space-y-3">
+              <div>
                 {isFreeCourse ? (
-                  <>
-                    <Link href="/auth/register" className="block w-full">
-                      <Button className="w-full bg-[#00324F] hover:bg-[#004A75] text-white font-black py-7 rounded-2xl shadow-xl transition-all active:scale-95">
-                        CRIAR MINHA CONTA GRÁTIS
-                      </Button>
-                    </Link>
-                    <Link href="/auth/login" className="block w-full">
-                      <Button variant="ghost" className="w-full text-gray-400 font-bold py-4">
-                        Já tenho conta, entrar
-                      </Button>
-                    </Link>
-                  </>
+                  <Link href="/auth/register">
+                    <Button className="bg-[#00324F] hover:bg-[#004A75] text-white text-xs font-black py-2 px-4 rounded-xl">
+                      CRIAR CONTA GRÁTIS
+                    </Button>
+                  </Link>
                 ) : (
                   <Button
                     onClick={() => setShowPurchaseModal(true)}
-                    className="w-full bg-[#00324F] hover:bg-[#004A75] text-white font-black py-7 rounded-2xl shadow-xl"
+                    className="bg-[#00324F] hover:bg-[#004A75] text-white text-xs font-black py-2 px-4 rounded-xl"
                   >
                     ADQUIRIR CURSO
                   </Button>
@@ -911,96 +899,95 @@ export default function CoursePage() {
         )}
       </div>
     ) : (
-      /* Mensagem quando nenhuma aula está selecionada */
-      <div className="flex items-center justify-center h-full text-gray-900">
-        <div className="text-center">
-          <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <h2 className="text-2xl font-semibold mb-2">Selecione uma aula</h2>
-          <p className="text-gray-600">Escolha um conteúdo ao lado para começar.</p>
+      <div className="absolute inset-0 flex items-center justify-center text-white bg-slate-900">
+        <div className="text-center p-4">
+          <Play className="w-10 h-10 mx-auto mb-2 opacity-50" />
+          <p className="text-xs sm:text-sm">Selecione uma aula ao lado para começar.</p>
         </div>
       </div>
     )}
   </div>
 
-          {/* Banner de Conversão para Curso Grátis */}
-          {isFreeCourse && !user && (
-            <div className="max-w-4xl mx-auto mt-8 mb-8 p-1">
-              <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#00324F] via-[#004A75] to-[#001F33] p-8 shadow-2xl">
-                {/* Detalhe visual de fundo */}
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-400/10 rounded-full blur-3xl"></div>
+  {/* Banner de Conversão para Curso Grátis */}
+  {isFreeCourse && !user && (
+    <div className="w-full max-w-3xl mx-auto px-4 mb-4">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#00324F] to-[#001F33] p-4 shadow-md">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-center sm:text-left">
+            <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-tight">
+              🚀 Acesso Total Liberado
+            </h3>
+            <p className="text-blue-100/80 text-[11px] sm:text-xs font-medium">
+              Crie sua conta grátis para desbloquear o curso completo.
+            </p>
+          </div>
+          <Link href="/auth/register" className="w-full sm:w-auto">
+            <Button className="bg-white text-[#00324F] hover:bg-blue-50 text-xs font-black w-full sm:w-auto px-5 py-2.5 rounded-xl shadow-md transition-all">
+              CADASTRAR GRÁTIS
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  )}
 
-                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                  <div className="text-center md:text-left">
-                    <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-2">
-                      🚀 Acesso Total Liberado
-                    </h3>
-                    <p className="text-blue-100/80 text-lg font-medium">
-                      Crie sua conta grátis para desbloquear o curso completo.
-                    </p>
-                  </div>
-                  <Link href="/auth/register">
-                    <Button className="bg-white text-[#00324F] hover:bg-blue-50 text-lg font-black px-10 py-8 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95">
-                      CADASTRAR GRÁTIS
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Video Info */}
-          {selectedLesson && (
-            <div className="bg-white border-t border-gray-200 p-4 lg:p-6">
-              <div className="max-w-4xl">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2">{selectedLesson.title}</h1>
-                    {selectedLesson.description && (
-                      <p className="text-gray-600 leading-relaxed text-sm lg:text-base">{selectedLesson.description}</p>
-                    )}
-                  </div>
-                  {isEnrolled && canAccessLesson(selectedLesson) && (
-                    <div className="ml-4">
-                      {isLessonCompletedByUser(selectedLesson.id) ? (
-                        <Badge className="bg-green-100 text-green-800 flex items-center">
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Concluída
-                        </Badge>
-                      ) : (
-                        <Button
-                          onClick={handleMarkAsCompleted}
-                          disabled={markingComplete}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          size="sm"
-                        >
-                          {markingComplete ? (
-                            <div className="flex items-center">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                              Salvando...
-                            </div>
-                          ) : (
-                            <div className="flex items-center">
-                              <Check className="w-4 h-4 mr-1" />
-                              Marcar como Concluída
-                            </div>
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center space-x-4 mt-4 text-sm text-gray-500">
-                  <span>
-                    Aula {selectedLesson.lesson_order}
-                  </span>
-                  {selectedLesson.is_preview && (
-                    <Badge className="bg-blue-100 text-blue-800">Preview Gratuito</Badge>
-                  )}
-                </div>
-              </div>
-            </div>
+  {/* Video Info */}
+  {selectedLesson && (
+    <div className="bg-white border border-gray-100 p-4 sm:p-5 w-full max-w-3xl mx-auto rounded-xl shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+        <div className="flex-1 w-full">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+              Aula {lessons.findIndex((l) => l.id === selectedLesson.id) + 1}
+            </span>
+            {selectedLesson.is_preview ? (
+              <Badge className="bg-green-100 text-green-800 border-0 text-[10px] px-2 py-0">Preview Gratuito</Badge>
+            ) : null}
+          </div>
+          <h1 className="text-base sm:text-lg lg:text-xl font-black text-gray-900 leading-tight mb-1">
+            {selectedLesson.title}
+          </h1>
+          {selectedLesson.description && (
+            <p className="text-gray-600 text-xs leading-relaxed max-w-xl">
+              {selectedLesson.description}
+            </p>
           )}
         </div>
+
+        {/* Botão Marcar como Concluída */}
+        {isEnrolled && canAccessLesson(selectedLesson) && (
+          <div className="sm:self-start flex-shrink-0 w-full sm:w-auto">
+            {isLessonCompletedByUser(selectedLesson.id) ? (
+              <Badge className="bg-green-100 text-green-800 flex items-center justify-center px-3 py-2 text-xs font-bold rounded-xl border-0 w-full sm:w-auto">
+                <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                Concluída
+              </Badge>
+            ) : (
+              <Button
+                onClick={handleMarkAsCompleted}
+                disabled={markingComplete}
+                className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold w-full sm:w-auto px-4 py-2.5 rounded-xl shadow-sm transition-all"
+              >
+                {markingComplete ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1.5"></div>
+                    Salvando...
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center">
+                    <Check className="w-3.5 h-3.5 mr-1" />
+                    Marcar como Concluída
+                  </div>
+                )}
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+</div>
+
       </div>
 
       {/* Modal de compra */}
