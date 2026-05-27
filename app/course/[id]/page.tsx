@@ -208,6 +208,13 @@ export default function CoursePage() {
     }
   }, [])
 
+useEffect(() => {
+  // Se a lista de aulas já carregou, tem pelo menos uma aula e nenhuma foi selecionada ainda
+  if (lessons && lessons.length > 0 && !selectedLesson) {
+    setSelectedLesson(lessons[0]);
+  }
+}, [lessons, selectedLesson, setSelectedLesson]);
+
   const handleLessonSelect = (lesson: Lesson) => {
     if (lesson.is_preview || isEnrolled || lesson.lesson_order <= 3) {
       setSelectedLesson(lesson)
@@ -680,7 +687,7 @@ export default function CoursePage() {
                 <img
                   src="/logo-master-project.png"
                   alt="Master Project"
-                  className="h-12 sm:h-16 w-auto transition-transform hover:scale-105"
+                  className="h-34 sm:h-40 w-auto transition-transform hover:scale-105"
                 />
               </Link>
 

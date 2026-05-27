@@ -128,6 +128,35 @@ export default function MyCoursesPage() {
     return `${Math.floor(min / 60)}h ${min % 60}min`
   }
 
+
+  // Insira esta lógica de busca dentro do seu componente principal
+  interface InstagramPost {
+    id: string;
+    tag: string;
+    likes: string;
+    caption: string;
+    img: string;
+    link: string;
+  }
+
+  // ... Dentro do seu componente principal:
+  const [realPosts, setRealPosts] = useState<InstagramPost[]>([]);
+
+  useEffect(() => {
+    async function loadInstagramFeed() {
+      try {
+        const res = await fetch('/api/instagram');
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setRealPosts(data);
+        }
+      } catch (err) {
+        console.error("Falha ao atualizar o feed do Instagram", err);
+      }
+    }
+    loadInstagramFeed();
+  }, []);
+
   const getFormattedDateAndGreeting = () => {
     const today = new Date()
     const dateStr = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(today)
@@ -185,13 +214,7 @@ export default function MyCoursesPage() {
           </div>
         </div>
 
-<div className="mb-10 overflow-hidden rounded-xl shadow-lg border border-gray-100 w-full md:w-1/3 mx-auto">
-  <img 
-    src="https://masterproject.com.br/assets/img/banner-presente.jpg" 
-    alt="Banner de Cursos" 
-    className="w-full h-auto object-cover"
-  />
-</div>
+
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {stats.map((s, i) => (
@@ -204,6 +227,8 @@ export default function MyCoursesPage() {
             </Card>
           ))}
         </div>
+
+        
 
         {/* Banner de Conclusão 100% - Visão Profi */}
         {courses.some(c => c.progress === 100) && (
@@ -257,12 +282,12 @@ export default function MyCoursesPage() {
           <div className="mt-20">
             <h2 className="text-2xl font-bold mb-6 flex items-center"><Sparkles className="w-6 h-6 mr-2 text-orange-500" /> Seu próximo nível começa aqui. 3 aulas gratuitas para você começar hoje.</h2>
             {/* --- SUBSTITUA A DIV DE ABERTURA DO CARROSSEL POR ESTA --- */}
-<div 
-  ref={scrollRef} 
-  onMouseEnter={() => setIsPaused(true)}
-  onMouseLeave={() => setIsPaused(false)}
-  className="flex gap-6 overflow-x-auto pb-8 snap-x scroll-smooth custom-scrollbar"
->
+            <div
+              ref={scrollRef}
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+              className="flex gap-6 overflow-x-auto pb-8 snap-x scroll-smooth custom-scrollbar"
+            >
               {recommendedCourses.map((c) => (
                 <div key={c.id} className="min-w-[320px] snap-center">
                   <Card className="hover:shadow-2xl transition-all border-gray-100 overflow-hidden">
@@ -278,7 +303,7 @@ export default function MyCoursesPage() {
           </div>
         )}
 
-        
+
       </main>
     </div>
   )
