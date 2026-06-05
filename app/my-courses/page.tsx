@@ -228,7 +228,29 @@ export default function MyCoursesPage() {
           ))}
         </div>
 
-        
+        {/* Banner Ultra Horizontal - Proporção 940x150 */}
+<div className="w-full max-w-7xl mx-auto mb-10 px-4">
+  <a 
+    href="https://instagram.com/masterprojectoficial" 
+    target="_blank" 
+    rel="noopener noreferrer" 
+    className="group block relative w-full overflow-hidden rounded-xl border border-gray-100 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+  >
+    {/* Força a proporção exata de 940x150 de forma fluida */}
+    <div className="w-full aspect-[94/15] relative bg-white">
+      <img
+        src="https://masterproject.com.br/assets/img/banner-print.jpg"
+        alt="Novidades Master Project"
+        className="w-full h-full object-cover sm:object-fill"
+        loading="lazy"
+      />
+      
+      {/* Overlay sutil de hover */}
+      <div className="absolute inset-0 bg-black/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+    </div>
+  </a>
+</div>
+
 
         {/* Banner de Conclusão 100% - Visão Profi */}
         {courses.some(c => c.progress === 100) && (
