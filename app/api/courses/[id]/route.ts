@@ -17,7 +17,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       WHERE id = ${courseId} AND is_active = true
     `
 
-    const courses = result.rows || result
+    const courses = result as any[];
 
     if (!courses || courses.length === 0) {
       console.log("[v0] API: Curso não encontrado para ID:", courseId)
