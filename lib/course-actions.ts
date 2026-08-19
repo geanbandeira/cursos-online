@@ -30,7 +30,7 @@ export async function getUserIdByEmail(email: string) {
     `
 
     console.log("[v0] Resultado da busca por email:", result)
-    return { success: true, userId: result[0]?.id || null }
+    return { success: true, userId: (result as any)[0]?.id || null }
   } catch (error: any) {
     console.error("[v0] Erro ao buscar usuário por email:", error)
     return { success: false, error: error.message, userId: null }
@@ -50,7 +50,7 @@ export async function markLessonAsCompleted(userId: string, lessonId: number) {
 
     // 2. Busca o curso dessa lição para atualizar o progresso geral
     const lessonInfo = await sql`SELECT course_id FROM lessons WHERE id = ${lessonId}`;
-    const courseId = lessonInfo[0]?.course_id;
+    const courseId = (lessonInfo as any)[0]?.course_id;
 
     if (courseId) {
       // 3. Recalcula o progresso
@@ -59,7 +59,7 @@ export async function markLessonAsCompleted(userId: string, lessonId: number) {
         // 4. Atualiza a tabela enrollments com a nova porcentagem
         await sql`
           UPDATE enrollments 
-          SET progress = ${progressResult.progress.percentage}
+          SET progress = ${progressResult.progress?.percentage}
           WHERE user_id = ${Number.parseInt(userId)} AND course_id = ${courseId}
         `;
       }
@@ -90,7 +90,7 @@ export async function getUserProgress(userId: string, courseId: number) {
     `
 
     const completed = completedLessons.length
-    const total = totalLessons[0]?.total || 0
+    const total = (totalLessons as any)[0]?.total || 0
     const progressPercentage = total > 0 ? Math.round((completed / total) * 100) : 0
 
     console.log("[v0] Progresso calculado:", { completed, total, progressPercentage })
@@ -101,7 +101,7 @@ export async function getUserProgress(userId: string, courseId: number) {
         completed,
         total,
         percentage: progressPercentage,
-        completedLessons: completedLessons.map((lesson) => lesson.lesson_id),
+        completedLessons: completedLessons.map((lesson ) => (lesson as any).lesson_id),
       },
     }
   } catch (error: any) {
@@ -195,7 +195,7 @@ export async function issueCertificateAction(data: {
   try {
     // Busca o título do curso primeiro
     const courses = await sql`SELECT title FROM courses WHERE id = ${data.courseId}`;
-    const courseName = courses[0]?.title || "Curso Concluído";
+    const courseName = (courses as any)[0]?.title || "Curso Concluído";
 
     // O uso de ${} na função sql que você possui já trata os parâmetros
     // mas se algum valor de 'data' for undefined, o erro acontece aqui.

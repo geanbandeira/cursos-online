@@ -22,7 +22,7 @@ export default async function RelatorioTecnicoPage() {
   const talents = stats.success ? stats.talents : [];
 
   // 3. CÁLCULO DE SCORE GLOBAL (FIXED: Converte para número para evitar NaN%)
-  const globalScore = ranking.length > 0 
+  const globalScore = ranking && ranking.length > 0
     ? Math.round(ranking.reduce((acc: number, curr: any) => acc + Number(curr.avg_score || 0), 0) / ranking.length)
     : 0;
 
@@ -33,11 +33,11 @@ export default async function RelatorioTecnicoPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
           <h1 className="text-4xl font-black text-[#00324F] tracking-tighter uppercase leading-none">Análise Técnica</h1>
-          <p className="text-slate-500 font-medium">Monitoramento: <span className="font-bold text-[#00324F] uppercase">{manager.companyName}</span></p>
+          <p className="text-slate-500 font-medium">Monitoramento: <span className="font-bold text-[#00324F] uppercase">{(manager as any).companyName}</span></p>
         </div>
         <ExportButtons 
           participationData={ranking} 
-          companyName={`${manager.companyName}_Analise_Tecnica`} 
+          companyName={`${(manager as any).companyName}_Analise_Tecnica`} 
         />
       </div>
 
@@ -59,7 +59,7 @@ export default async function RelatorioTecnicoPage() {
           <Card className="border-none shadow-xl bg-white rounded-[2.5rem] p-10 flex flex-col items-center justify-center text-center">
             <div className="bg-blue-50 p-4 rounded-3xl mb-4"><Users className="text-blue-600 w-8 h-8" /></div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">Departamentos<br/>Ativos</p>
-            <p className="text-5xl font-black text-[#00324F] mt-2">{ranking.length}</p>
+            <p className="text-5xl font-black text-[#00324F] mt-2">{ranking?.length}</p>
           </Card>
         </div>
 
@@ -73,7 +73,7 @@ export default async function RelatorioTecnicoPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-4">
-              {ranking.length > 0 ? ranking.map((s: any, i: number) => (
+              {(ranking || []).length > 0 ? ranking?.map((s: any, i: number) => (
                 <div key={i} className="flex items-center justify-between p-6 bg-slate-50/50 rounded-[2rem] border-2 border-transparent hover:border-blue-100 hover:bg-white transition-all group">
                   <div className="flex items-center gap-6">
                     <span className="text-3xl font-black text-slate-200 group-hover:text-blue-200 transition-colors">0{i+1}</span>
@@ -91,7 +91,7 @@ export default async function RelatorioTecnicoPage() {
                 </div>
               )) : (
                 <div className="text-center py-20 bg-slate-50 rounded-[2rem] border-2 border-dashed">
-                  <p className="text-slate-400 font-black text-xs tracking-widest uppercase">Nenhum dado capturado para {manager.companyName}</p>
+                  <p className="text-slate-400 font-black text-xs tracking-widest uppercase">Nenhum dado capturado para {(manager as any).companyName}</p>
                 </div>
               )}
             </CardContent>
@@ -104,7 +104,7 @@ export default async function RelatorioTecnicoPage() {
               <h2 className="text-xs font-black text-[#00324F] uppercase tracking-[0.2em]">Top Talentos</h2>
             </div>
             
-            {talents.length > 0 ? talents.map((t: any, i: number) => (
+            {(talents || []).length > 0 ? talents?.map((t: any, i: number) => (
               <Card key={i} className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden relative group">
                 <div className="absolute right-[-15px] bottom-[-15px] opacity-5 text-[#00324F] group-hover:scale-110 transition-transform">
                   <BrainCircuit size={150} />

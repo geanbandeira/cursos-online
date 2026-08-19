@@ -122,7 +122,7 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
             {/* LINKS DINÂMICOS */}
             <nav className="flex-grow space-y-4">
               {currentMenu.map((item) => {
-                const isOutlined = item.variant === "outlined";
+                const isOutlined = (item as any).variant === "outlined";
                 const isActive = pathname === item.href;
                 
                 // Estilos específicos (igual ao antigo)
@@ -139,7 +139,7 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
                       boxShadow: item.label === "Meus Certificados" ? "0 10px 15px -3px rgba(0, 50, 79, 0.3)" : "none"
                     };
 
-                if (item.isExternal) {
+                if ((item as any).isExternal) {
                   return (
                     <a
                       key={item.href}
@@ -152,7 +152,7 @@ export function MobileNav({ completedLessons = 0, totalLessons = 0 }: MobileNavP
                     >
                       <item.icon className="h-6 w-6 fill-white" />
                       <span>{item.label}</span>
-                      {item.hasBadge && (
+                      {(item as any).hasBadge  && (
                         <Badge className="ml-auto bg-white text-[10px] font-black" style={{ color: item.color }}>ON</Badge>
                       )}
                     </a>

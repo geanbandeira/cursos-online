@@ -2,7 +2,7 @@
 "use client"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-export function CompletionChart({ data }) {
+export function CompletionChart({ data }: { data: any }) {
   return (
     <div className="h-[300px] w-full bg-white p-4 rounded-xl border shadow-sm">
       <h3 className="text-sm font-medium text-slate-500 mb-4">Conclusão de Aulas (Últimos 30 dias)</h3>

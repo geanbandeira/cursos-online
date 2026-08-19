@@ -87,7 +87,8 @@ export function TechnicalPerformance({ performanceData }: { performanceData: any
                   <span>Score Atual</span>
                   <span>Objetivo: 85%</span>
                 </div>
-                <Progress value={cat.score} className="h-1.5" indicatorColor={cat.color} />
+                {/* @ts-ignore */}
+<Progress value={cat.score} className="h-1.5" indicatorColor={cat.color} />
               </div>
             </CardContent>
           </Card>

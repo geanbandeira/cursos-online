@@ -32,7 +32,8 @@ export default function AllMaterialsPage() {
     }
 
     async function load() {
-      const userRes = await getUserIdByEmail(user.email);
+      if (!user || !user.email) return;
+const userRes = await getUserIdByEmail(user.email);
       if (userRes.success && userRes.userId) {
         const res = await getAllEnrolledMaterials(userRes.userId.toString());
         if (res.success) setMaterials(res.materials as Material[]);

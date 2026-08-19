@@ -9,7 +9,7 @@ async function checkDatabase() {
 
     console.log("[v0] Total de cursos encontrados:", courses.length)
 
-    courses.forEach((course, index) => {
+    courses.forEach((course: any, index) => {
       console.log(`[v0] Curso ${index + 1}:`, {
         id: course.id,
         title: course.title,

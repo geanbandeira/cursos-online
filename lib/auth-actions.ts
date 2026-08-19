@@ -476,7 +476,7 @@ export async function getCurrentManager() {
   // Busca os dados do Cognito usando o token do cookie
   const res = await getUserFromToken(token)
   
-  if (res.success && res.data.role === 'manager') {
+  if (res.success && res.data && res.data.role === 'manager') {
     // Busca o company_id no banco para o dashboard saber qual empresa carregar
     const dbUser = await query("SELECT company_id FROM users WHERE email = ?", [res.data.email])
     return {
@@ -547,16 +547,16 @@ export async function createCompanyWithManagers(name: string, managers: {name: s
     // 2. Tenta capturar o ID de todas as formas conhecidas (MySQL, MariaDB, etc)
     let companyId = null;
 
-    if (res.insertId) companyId = res.insertId;
-    else if (res[0]?.insertId) companyId = res[0].insertId;
-    else if (res.rows?.[0]?.id) companyId = res.rows[0].id; // Para PostgreSQL
-    else if (res.rows?.insertId) companyId = res.rows.insertId;
+   const r: any = res;
+      if (r.insertId) companyId = r.insertId;
+      else if (r[0]?.insertId) companyId = r[0].insertId;
+      else if (r.rows?.[0]?.id) companyId = r.rows[0].id; // Para PostgreSQL
+      else if (r.rows?.insertId) companyId = r.rows.insertId;
 
     if (!companyId) {
       // Fallback 2026: Busca o ID pelo nome se o insertId falhar
       const findId = await query("SELECT id FROM companies WHERE name = ? ORDER BY id DESC LIMIT 1", [name.toUpperCase()]);
-      companyId = findId.rows?.[0]?.id || findId?.[0]?.id;
-    }
+companyId = (findId as any).rows?.[0]?.id || (findId as any)?.[0]?.id;    }
 
     if (!companyId) throw new Error("Não foi possível recuperar o ID da empresa criada.");
 

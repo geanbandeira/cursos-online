@@ -253,7 +253,7 @@ export default function MyCoursesPage() {
 
 
         {/* Banner de Conclusão 100% - Visão Profi */}
-        {courses.some(c => c.progress === 100) && (
+        {courses.some(c => (c as any).progress === 100) && (
           <div className="mb-10 bg-green-50 border border-green-200 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="bg-green-100 p-4 rounded-full shadow-inner">
               <PartyPopper className="w-10 h-10 text-green-600" />

@@ -1,7 +1,7 @@
 "use client"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-export function ActivationChart({ data }) {
+export function ActivationChart({ data }: { data: any }) {
   const COLORS = ['#2563eb', '#7c3aed', '#db2777', '#ea580c'];
 
   return (
@@ -13,7 +13,7 @@ export function ActivationChart({ data }) {
           <YAxis dataKey="department" type="category" width={100} fontSize={12} />
           <Tooltip cursor={{fill: 'transparent'}} />
           <Bar dataKey="activationRate" radius={[0, 4, 4, 0]} barSize={20}>
-            {data.map((entry, index) => (
+            {data.map((entry: any, index: number) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Bar>
@@ -24,7 +24,7 @@ export function ActivationChart({ data }) {
 }
 
 // components/manager/QuizAnalytics.tsx
-export function QuizAnalytics({ quizData }) {
+export function QuizAnalytics({ quizData }: { quizData: any }) {
   return (
     <div className="bg-white p-6 rounded-xl border shadow-sm">
       <h3 className="font-bold text-slate-800 mb-2">Proficiência por Tema</h3>
@@ -35,7 +35,7 @@ export function QuizAnalytics({ quizData }) {
       
       {/* Visual de Barras de Progresso de Notas */}
       <div className="space-y-4">
-        {quizData.map((item) => (
+        {quizData.map((item: any) => (
           <div key={item.topic}>
             <div className="flex justify-between text-sm mb-1">
               <span className="font-medium">{item.topic}</span>

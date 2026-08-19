@@ -11,7 +11,7 @@ const pool = mysql.createPool({
   acquireTimeout: 60000,
   timeout: 60000,
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-})
+}as any)
 
 export async function query(sql: string, params: any[] = []) {
   try {
