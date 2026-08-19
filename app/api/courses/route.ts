@@ -15,7 +15,8 @@ export async function GET() {
       ORDER BY created_at DESC
     `
 
-const courses = result as any[]
+    const courses = result as any[]
+
     console.log("[v0] API: Cursos encontrados no banco:", courses.length)
     console.log("[v0] API: Primeiro curso:", courses[0]?.title || "Nenhum curso")
 
