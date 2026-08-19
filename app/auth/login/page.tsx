@@ -31,13 +31,13 @@ export default function LoginPage() {
     try {
       const result = await signInAction(email, password)
 
-      if (result.success && result.data.AuthenticationResult?.AccessToken) {
+      if (result.success && result.data && result.data.AuthenticationResult?.AccessToken) {
         const userResult = await getUserFromToken(result.data.AuthenticationResult.AccessToken)
 
         if (userResult.success) {
   await updateLastLogin(email); 
   
-  setUser(userResult.data)
+  setUser(userResult.data || null)
   router.push("/my-courses")
         } else {
           setError("Erro ao obter dados do usuário")

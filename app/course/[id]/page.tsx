@@ -140,7 +140,7 @@ export default function CoursePage() {
           if (enrollmentResult.enrolled) {
             const progressResult = await getUserProgress(userResult.userId.toString(), Number.parseInt(courseId))
             if (progressResult.success) {
-              setUserProgress(progressResult.progress)
+              setUserProgress((progressResult.progress as any) || null)
             }
           }
         }
@@ -168,7 +168,7 @@ export default function CoursePage() {
         // Atualizar progresso
         const progressResult = await getUserProgress(currentUserId, Number.parseInt(courseId))
         if (progressResult.success) {
-          setUserProgress(progressResult.progress)
+          setUserProgress((progressResult.progress as any) || null)
         }
       }
     } catch (error) {
@@ -439,7 +439,7 @@ useEffect(() => {
       }
 
       // Verificar se a API do Vimeo está disponível
-      if (typeof window === "undefined" || !window.Vimeo || !window.Vimeo.Player) {
+      if (typeof window === "undefined" || !(window as any).Vimeo || !(window as any).Vimeo.Player) {
         console.log("[v0] Vimeo API não disponível ainda")
         return false
       }
@@ -462,7 +462,7 @@ useEffect(() => {
 
         // Criar novo player
         console.log("[v0] Criando novo player do Vimeo para:", selectedLesson.title)
-        vimeoPlayerRef.current = new window.Vimeo.Player(iframe)
+        vimeoPlayerRef.current = new (window as any).Vimeo.Player(iframe)
 
         // Aguardar o player estar pronto
         vimeoPlayerRef.current
@@ -477,7 +477,7 @@ useEffect(() => {
                 .then(() => {
                   console.log("[v0] ✅ Autoplay iniciado com sucesso!")
                 })
-                .catch((error) => {
+                .catch((error: any) => {
                   console.log("[v0] ⚠️ Autoplay bloqueado pelo browser:", error)
                   // Tentar novamente após um pequeno delay
                   setTimeout(() => {
@@ -504,10 +504,10 @@ useEffect(() => {
                   })
                   .then((progressResult) => {
                     if (progressResult && progressResult.success) {
-                      setUserProgress(progressResult.progress)
+                      setUserProgress((progressResult.progress as any) || null)
                     }
                   })
-                  .catch((error) => {
+                  .catch((error: any) => {
                     console.error("[v0] ❌ Erro ao marcar lição como concluída automaticamente:", error)
                   })
               }
@@ -524,8 +524,8 @@ useEffect(() => {
               console.log("[v0] ⏸️ Vídeo pausado")
             })
 
-            vimeoPlayerRef.current.on("timeupdate", (data) => {
-              vimeoPlayerRef.current.getDuration().then((duration) => {
+            vimeoPlayerRef.current.on("timeupdate", (data: any) => {
+              vimeoPlayerRef.current.getDuration().then((duration: any) => {
                 const remaining = duration - data.seconds
                 if (remaining <= 3 && remaining > 0) {
                   console.log("[v0] ⏰ Restam", Math.ceil(remaining), "segundos")
@@ -535,7 +535,7 @@ useEffect(() => {
 
             console.log("[v0] ✅ Todos os eventos registrados")
           })
-          .catch((error) => {
+          .catch((error: any) => {
             console.error("[v0] ❌ Erro ao inicializar player:", error)
           })
 
@@ -549,7 +549,7 @@ useEffect(() => {
     // Sistema de retry melhorado
     let retryCount = 0
     const maxRetries = 10
-    let retryInterval
+    let retryInterval : any
 
     const tryInitialize = () => {
       retryCount++
@@ -643,7 +643,7 @@ useEffect(() => {
           console.log("[v0] 📦 Vimeo Player API carregada com sucesso!")
           // Aguardar um pouco para garantir que a API esteja totalmente disponível
           setTimeout(() => {
-            if (window.Vimeo && window.Vimeo.Player) {
+            if ((window as any).Vimeo && (window as any).Vimeo.Player) {
               console.log("[v0] ✅ Vimeo.Player disponível!")
             } else {
               console.log("[v0] ⚠️ Vimeo.Player ainda não disponível")
