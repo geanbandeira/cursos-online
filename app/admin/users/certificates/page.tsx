@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { getAllUsers } from "@/lib/auth-actions"
-import { 
-  getUserCertificatesAction, 
-  getAllCoursesAction, 
-  issueCertificateAction 
+import {
+  getUserCertificatesAction,
+  getAllCoursesAction,
+  issueCertificateAction
 } from "@/lib/course-actions"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -38,23 +38,22 @@ export default function AdminCertificatesPage() {
     try {
       const resUsers = await getAllUsers(user?.email || "")
       const resCourses = await getAllCoursesAction()
-      
-      if (resUsers.success) setUsers(resUsers.users)
-      if (resCourses.success) setCourses(resCourses.courses)
 
-      // Busca certificados de todos os usuários
-      if (resUsers.success && resUsers.users.length > 0) {
-        const certsPromises = resUsers.users.map(async (u: any) => {
+      if (resUsers.success) setUsers(resUsers.users || [])
+      if (resCourses.success) setCourses(resCourses.courses || [])
+
+      if (resUsers.success && (resUsers.users || []).length > 0) {
+        const certsPromises = (resUsers.users || []).map(async (u: any) => {
           const r = await getUserCertificatesAction(u.id)
           if (r.success) {
-            return r.certificates.map((c: any) => ({
+            return (r.certificates || []).map((c: any) => ({
               ...c,
               userName: `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email
             }))
           }
           return []
         })
-        
+
         const results = await Promise.all(certsPromises)
         setAllCertificates(results.flat())
       }
@@ -71,7 +70,7 @@ export default function AdminCertificatesPage() {
 
   const handleIssue = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Previne envio de campos undefined
     const payload = {
       userId: Number(formData.userId),
@@ -93,8 +92,8 @@ export default function AdminCertificatesPage() {
     }
   }
 
-  const filteredCerts = allCertificates.filter(c => 
-    c.userName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredCerts = allCertificates.filter(c =>
+    c.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.certificate_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -120,8 +119,8 @@ export default function AdminCertificatesPage() {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <Input 
-          placeholder="Buscar por aluno, curso ou código..." 
+        <Input
+          placeholder="Buscar por aluno, curso ou código..."
           className="pl-10 bg-white"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -182,11 +181,11 @@ export default function AdminCertificatesPage() {
               <form onSubmit={handleIssue} className="space-y-4">
                 <div className="space-y-2">
                   <Label>Selecionar Aluno</Label>
-                  <select 
-                    className="w-full p-2 border rounded-md text-sm bg-white" 
+                  <select
+                    className="w-full p-2 border rounded-md text-sm bg-white"
                     required
                     value={formData.userId}
-                    onChange={e => setFormData({...formData, userId: e.target.value})}
+                    onChange={e => setFormData({ ...formData, userId: e.target.value })}
                   >
                     <option value="">Escolha um aluno...</option>
                     {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.email})</option>)}
@@ -195,11 +194,11 @@ export default function AdminCertificatesPage() {
 
                 <div className="space-y-2">
                   <Label>Curso Correspondente</Label>
-                  <select 
-                    className="w-full p-2 border rounded-md text-sm bg-white" 
+                  <select
+                    className="w-full p-2 border rounded-md text-sm bg-white"
                     required
                     value={formData.courseId}
-                    onChange={e => setFormData({...formData, courseId: e.target.value})}
+                    onChange={e => setFormData({ ...formData, courseId: e.target.value })}
                   >
                     <option value="">Escolha o curso...</option>
                     {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
@@ -208,31 +207,31 @@ export default function AdminCertificatesPage() {
 
                 <div className="space-y-2">
                   <Label>Código do Certificado (Ex: CERT025)</Label>
-                  <Input 
-                    placeholder="Código de validação" 
-                    required 
+                  <Input
+                    placeholder="Código de validação"
+                    required
                     value={formData.code}
-                    onChange={e => setFormData({...formData, code: e.target.value})}
+                    onChange={e => setFormData({ ...formData, code: e.target.value })}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Nome do PDF</Label>
-                    <Input 
-                      placeholder="arquivo.pdf" 
+                    <Input
+                      placeholder="arquivo.pdf"
                       required
                       value={formData.pdfFile}
-                      onChange={e => setFormData({...formData, pdfFile: e.target.value})}
+                      onChange={e => setFormData({ ...formData, pdfFile: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Nome da Imagem (JPG)</Label>
-                    <Input 
-                      placeholder="arquivo.jpg" 
+                    <Input
+                      placeholder="arquivo.jpg"
                       required
                       value={formData.jpgFile}
-                      onChange={e => setFormData({...formData, jpgFile: e.target.value})}
+                      onChange={e => setFormData({ ...formData, jpgFile: e.target.value })}
                     />
                   </div>
                 </div>

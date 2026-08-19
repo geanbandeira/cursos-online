@@ -26,7 +26,7 @@ import {
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
-import { checkUserEnrollment, getUserIdByEmail, markLessonAsCompleted, getUserProgress } from "@/lib/course-actions"
+import { checkUserEnrollment, getUserIdByEmail, markLessonAsCompleted, getUserProgress, getMyCertificatesAction } from "@/lib/course-actions"
 import Script from "next/script"
 
 interface Course {
@@ -57,20 +57,7 @@ interface Lesson {
   is_preview: boolean
 }
 
-// No lib/course-actions.ts
-export async function getMyCertificatesAction(userId: string) {
-  try {
-    const result = await sql`
-      SELECT c.*, co.title as course_title 
-      FROM certificates c
-      JOIN courses co ON c.course_id = co.id
-      WHERE c.user_id = ${Number.parseInt(userId)}
-    `;
-    return { success: true, certificates: result };
-  } catch (error: any) {
-    return { success: false, certificates: [] };
-  }
-}
+
 
 export default function CoursePage() {
   const params = useParams()

@@ -52,8 +52,8 @@ export default function AdminUsersPage() {
   const handleViewCerts = async (userId: number) => {
     setLoading(true);
     const res = await getUserCertificatesAction(userId);
-    if (res.success && res.certificates.length > 0) {
-      setSelectedCerts(res.certificates);
+    if (res.success && (res.certificates || []).length > 0) {
+      setSelectedCerts(res.certificates || []);
     } else {
       alert("Este aluno ainda não possui certificados gerados.");
     }
@@ -82,14 +82,15 @@ export default function AdminUsersPage() {
         getAllCoursesAction()
       ])
       if (resUsers.success) {
-        setUsers(resUsers.users)
-        setStats({
-          total: resUsers.users.length,
-          waitingCert: resUsers.users.filter((u: any) => u.enrollments?.some((e: any) => e.progress === 100)).length,
-          studying: resUsers.users.filter((u: any) => u.enrollments?.some((e: any) => e.progress > 0 && e.progress < 100)).length
-        })
-      }
-      if (resCourses.success) setCourses(resCourses.courses)
+          const fetchedUsers = resUsers.users || [];
+          setUsers(fetchedUsers);
+          setStats({
+            total: fetchedUsers.length,
+            waitingCert: fetchedUsers.filter((u: any) => u.enrollments?.some((e: any) => e.progress === 100)).length,
+            studying: fetchedUsers.filter((u: any) => u.enrollments?.some((e: any) => e.progress > 0 && e.progress < 100)).length
+          });
+        }
+        if (resCourses.success) setCourses(resCourses.courses || []);
     } catch (err) {
       console.error("Erro ao carregar dados:", err)
     } finally {
