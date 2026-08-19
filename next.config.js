@@ -3,11 +3,6 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/',
-        destination: 'https://cursos-online.masterproject.com.br/',
-        permanent: true,
-      },
-      {
         source: '/course/1',
         destination: 'https://cursos-online.masterproject.com.br/okr',
         permanent: true,
