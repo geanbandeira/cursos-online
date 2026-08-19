@@ -55,7 +55,7 @@ export default async function ManagerDashboardPage() {
             Olá, {manager.name.split(' ')[0]} 👋
           </h1>
           <p className="text-slate-500 font-medium">
-            Gestão Institucional: <span className="text-[#00324F] font-bold">{manager.companyName}</span>
+            Gestão Institucional: <span className="text-[#00324F] font-bold">{(manager as any).companyName}</span>
           </p>
         </div>
 
@@ -63,7 +63,7 @@ export default async function ManagerDashboardPage() {
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">Exportar Relatórios</p>
           <ExportButtons
             participationData={participationData}
-            companyName={manager.companyName}
+            companyName={(manager as any).companyName}
           />
         </div>
       </div>
@@ -74,7 +74,7 @@ export default async function ManagerDashboardPage() {
         {/* Título Visível apenas no PDF ou Impressão */}
         <div className="hidden block-in-pdf mb-6 border-b-2 pb-4">
           <h2 className="text-2xl font-black text-[#00324F] uppercase">Relatório Master Project - 2026</h2>
-          <p className="text-slate-500 font-bold">Empresa: {manager.companyName}</p>
+          <p className="text-slate-500 font-bold">Empresa: {(manager as any).companyName}</p>
         </div>
 
         {/* 1. CARDS DE RESUMO (KPIs) */}
