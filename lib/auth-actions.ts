@@ -12,7 +12,7 @@ import {
 import { query } from "./database"
 import { ListUsersCommand } from "@aws-sdk/client-cognito-identity-provider"
 import { cookies } from "next/headers";
-
+import { randomUUID } from "crypto"
 
 const client = new CognitoIdentityProviderClient({
   region: process.env.AWS_REGION || "us-east-1",
@@ -105,6 +105,10 @@ export async function syncExistingUserPhones() {
   }
 }
 
+
+
+
+
 export async function getAllUsers(adminEmail: string) {
   try {
     // 1. Verifica permissão de admin
@@ -176,13 +180,40 @@ export async function signUpAction(email: string, password: string, name: string
     const response = await client.send(command)
     console.log("[v0] Usuário criado no Cognito com sucesso")
 
-    // Tentar salvar no banco de dados após sucesso no Cognito
     if (response) {
       console.log("[v0] Tentando salvar no banco de dados...")
       const dbResult = await saveUserToDatabase(email, name, phone)
 
       if (dbResult.success) {
         console.log("[v0] Usuário salvo no banco com sucesso!")
+
+        // --- INÍCIO DA ATIVAÇÃO DE PACOTES B2B ---
+        // --- INÍCIO DA ATIVAÇÃO DE PACOTES B2B ---
+try {
+  await query(`
+    UPDATE b2b_licenses l 
+    JOIN users u ON l.email = u.email 
+    SET l.user_id = u.id 
+    WHERE l.email = ? AND l.status = 'ACTIVE'
+  `, [email]);
+
+  await query(`
+    INSERT INTO enrollments (user_id, course_id, enrolled_at, progress)
+    SELECT u.id, p.courseId, NOW(), 0.00
+    FROM b2b_licenses l
+    JOIN b2b_packages p ON l.package_id = p.id
+    JOIN users u ON u.email = l.email
+    WHERE l.email = ? AND l.status = 'ACTIVE'
+    ON DUPLICATE KEY UPDATE enrolled_at = NOW()
+  `, [email]);
+
+  console.log("[v0] Matrículas B2B processadas com sucesso!");
+} catch (b2bError) {
+  console.error("[v0] Erro ao ativar licenças B2B:", b2bError);
+}
+// --- FIM DA ATIVAÇÃO B2B ---
+        // --- FIM DA ATIVAÇÃO B2B ---
+
         return {
           success: true,
           data: response,
@@ -205,7 +236,6 @@ export async function signUpAction(email: string, password: string, name: string
     return { success: false, error: error.message }
   }
 }
-
 
 // lib/auth-actions.ts
 
@@ -452,8 +482,40 @@ export async function generateInviteLink(companyId: number) {
   return `${baseUrl}/auth/register?invite=${code}`;
 }
 
-// lib/auth-actions.ts
+export async function createB2BPackage(empresaId: string, courseId: string, totalSeats: number) {
+  try {
+    const id = randomUUID();
+    await query(
+      "INSERT INTO b2b_packages (id, empresaId, courseId, totalSeats, usedSeats) VALUES (?, ?, ?, ?, 0)",
+      [id, empresaId, courseId, totalSeats]
+    );
+    return { success: true };
+  } catch (error) {
+    console.error("[CREATE_B2B_PACKAGE_ERROR]", error);
+    return { success: false };
+  }
+}
 
+export async function getB2BPackages() {
+  try {
+    const { rows } = await query("SELECT * FROM b2b_packages");
+    return { success: true, packages: rows || [] };
+  } catch (error) {
+    console.error("[GET_B2B_PACKAGES_ERROR]", error);
+    return { success: false, packages: [] };
+  }
+}
+
+export async function revokeB2BLicense(licenseId: string, packageId: string) {
+  try {
+    await query("UPDATE b2b_licenses SET status = 'REVOKED', revoked_at = NOW() WHERE id = ?", [licenseId]);
+    await query("UPDATE b2b_packages SET usedSeats = usedSeats - 1 WHERE id = ?", [packageId]);
+    return { success: true };
+  } catch (error) {
+    console.error("[REVOKE_LICENSE_ERROR]", error);
+    return { success: false };
+  }
+}
 
 
 // Buscar todas as empresas para o dropdown do Admin
@@ -655,4 +717,14 @@ export async function signOutAction() {
   // Remove o cookie que mantém a sessão ativa
   cookieStore.delete("accessToken");
   return { success: true };
+}
+
+export async function getB2BPackagesByCompany(empresaId: string | number) {
+  try {
+    const { rows } = await query("SELECT * FROM b2b_packages WHERE empresaId = ?", [empresaId]);
+    return { success: true, packages: rows || [] };
+  } catch (error) {
+    console.error("[GET_B2B_PACKAGES_BY_COMPANY_ERROR]", error);
+    return { success: false, packages: [] };
+  }
 }

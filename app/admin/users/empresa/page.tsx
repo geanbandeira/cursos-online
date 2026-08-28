@@ -7,7 +7,8 @@ import {
   getCompanies, 
   linkStudentToCompany, 
   updateUserDepartment,
-  deleteCompanyAction 
+  deleteCompanyAction,
+  createB2BPackage
 } from "@/lib/auth-actions"
 import { 
   Table, 
@@ -30,7 +31,8 @@ import {
   CheckCircle2, 
   Loader2,
   UserCircle,
-  AlertTriangle
+  AlertTriangle,
+  Package
 } from "lucide-react"
 
 export default function GestaoEmpresaAlunosPage() {
@@ -41,6 +43,12 @@ export default function GestaoEmpresaAlunosPage() {
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
 
+  // --- ESTADOS B2B (Apenas Criação) ---
+  const [b2bCompanyId, setB2bCompanyId] = useState("")
+  const [b2bCourseId, setB2bCourseId] = useState("")
+  const [b2bSeats, setB2bSeats] = useState("")
+  const [createLoading, setCreateLoading] = useState(false)
+
   const loadData = async () => {
     if (!user?.email) return
     setLoading(true)
@@ -49,7 +57,6 @@ export default function GestaoEmpresaAlunosPage() {
         getAllUsers(user.email),
         getCompanies()
       ])
-      // Garante que users sempre seja um array, mesmo se o banco falhar
       setUsers(Array.isArray(resUsers.users) ? resUsers.users : [])
       setCompanies(Array.isArray(resComp.companies) ? resComp.companies : [])
     } catch (err) {
@@ -63,12 +70,8 @@ export default function GestaoEmpresaAlunosPage() {
     if (!authLoading && user?.role === 'admin') loadData()
   }, [user, authLoading])
 
-  // --- AÇÕES ---
-
   const handleLink = async (userId: number, companyId: number | null) => {
     setUpdatingId(userId)
-    
-    // ATUALIZAÇÃO OTIMISTA: Reflete na tela instantaneamente
     setUsers(prev => prev.map(u => 
       u?.id === userId ? { ...u, company_id: companyId } : u
     ))
@@ -88,7 +91,32 @@ export default function GestaoEmpresaAlunosPage() {
     else alert("Não foi possível excluir. Verifique se há restrições no banco.")
   }
 
-  // FILTRO SEGURO: Lida com nomes nulos ou undefined
+  const handleCreatePackage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!b2bCompanyId || !b2bCourseId || !b2bSeats) {
+      return alert("Preencha todos os campos para criar o pacote.")
+    }
+
+    setCreateLoading(true)
+    try {
+      const res = await createB2BPackage(b2bCompanyId, b2bCourseId, Number(b2bSeats))
+      if (res.success) {
+        alert("✅ Pacote gerado com sucesso!")
+        setB2bCompanyId("")
+        setB2bCourseId("")
+        setB2bSeats("")
+      } else {
+        alert("❌ Erro ao criar pacote no banco de dados.")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Erro de conexão ao criar pacote.")
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
+  // FILTRO SEGURO
   const filteredUsers = users.filter(u => {
     if (!u) return false
     const firstName = u.first_name || ""
@@ -133,7 +161,7 @@ export default function GestaoEmpresaAlunosPage() {
         </div>
       </header>
 
-      {/* SEÇÃO 1: GESTÃO DE EMPRESAS (EXCLUSÃO) */}
+      {/* SEÇÃO 1: GESTÃO DE EMPRESAS */}
       <section className="space-y-4">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
@@ -168,15 +196,48 @@ export default function GestaoEmpresaAlunosPage() {
               </CardContent>
             </Card>
           ))}
-          {companies.length === 0 && (
-             <div className="col-span-full py-6 text-center border-2 border-dashed rounded-2xl text-slate-300 font-bold text-xs uppercase">
-               Nenhuma empresa cadastrada no sistema.
-             </div>
-          )}
         </div>
       </section>
 
-      {/* SEÇÃO 2: TABELA DE VÍNCULOS (ALUNOS) */}
+      {/* SEÇÃO 2: CRIAR PACOTE B2B */}
+      <section className="max-w-2xl">
+        <Card className="border-none shadow-lg rounded-2xl bg-white p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Package size={20} /></div>
+            <h2 className="font-black text-[#00324F] uppercase tracking-widest text-sm">Criar Pacote de Acessos B2B</h2>
+          </div>
+          <form onSubmit={handleCreatePackage} className="space-y-4">
+            <select 
+              required
+              value={b2bCompanyId}
+              onChange={(e) => setB2bCompanyId(e.target.value)}
+              className="w-full p-3 border-2 border-slate-100 rounded-xl text-sm font-bold outline-none focus:border-blue-400 uppercase text-slate-600"
+            >
+              <option value="">Selecione a Empresa Cliente</option>
+              {companies.map(c => (
+                <option key={c?.id} value={c?.id}>{c?.name}</option>
+              ))}
+            </select>
+            <div className="flex gap-4">
+              <Input 
+                required placeholder="ID do Curso (Ex: 1)" value={b2bCourseId} 
+                onChange={(e) => setB2bCourseId(e.target.value)}
+                className="h-12 border-2 border-slate-100 rounded-xl font-bold"
+              />
+              <Input 
+                required type="number" placeholder="Qtd de Vagas" value={b2bSeats} min="1"
+                onChange={(e) => setB2bSeats(e.target.value)}
+                className="h-12 border-2 border-slate-100 rounded-xl font-bold w-1/3"
+              />
+            </div>
+            <Button type="submit" disabled={createLoading} className="w-full h-12 bg-[#00324F] hover:bg-blue-900 font-bold rounded-xl text-white transition-all">
+              {createLoading ? <Loader2 className="animate-spin" /> : "Gerar Pacote e Enviar para Gestor"}
+            </Button>
+          </form>
+        </Card>
+      </section>
+
+      {/* SEÇÃO 3: TABELA DE VÍNCULOS ORIGINAIS */}
       <Card className="border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
         <Table>
           <TableHeader className="bg-[#00324F]">
@@ -192,7 +253,6 @@ export default function GestaoEmpresaAlunosPage() {
                 <TableCell className="pl-8">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-[#00324F] font-black text-sm shadow-inner overflow-hidden">
-                      {/* BLINDAGEM CONTRA O ERRO '0': Uso de optional chaining e fallback */}
                       {u?.first_name ? String(u.first_name).charAt(0).toUpperCase() : <UserCircle className="text-slate-300" />}
                     </div>
                     <div>

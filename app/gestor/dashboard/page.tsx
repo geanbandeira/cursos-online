@@ -4,7 +4,8 @@ import { ParticipationTable } from "@/components/manager/ParticipationTable";
 import { CompletionChart } from "@/components/manager/CompletionChart";
 import { ActivationChart } from "@/components/manager/ActivationChart";
 import { ExportButtons } from "@/components/manager/ExportButtons";
-import { Trophy} from "lucide-react"
+import { B2BDistributionCard } from "@/components/manager/B2BDistributionCard"; // <-- NOVO COMPONENTE
+import { Trophy } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { 
   getManagerParticipationReport, 
@@ -12,7 +13,7 @@ import {
   getActivationByDepartment, 
   getCompanyCompetencyMap 
 } from "@/lib/course-actions";
-import { getCurrentManager } from "@/lib/auth-actions";
+import { getCurrentManager, getB2BPackagesByCompany } from "@/lib/auth-actions"; // <-- ATUALIZADO
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   Users, 
@@ -31,12 +32,15 @@ export default async function ManagerDashboardPage() {
 
   const companyId = manager.companyId;
 
-  const [participationData, trendData, activationData, competencyData] = await Promise.all([
+  const [participationData, trendData, activationData, competencyData, packagesData] = await Promise.all([
     getManagerParticipationReport(companyId),
     getDailyCompletionTrend(companyId),
     getActivationByDepartment(companyId),
-    getCompanyCompetencyMap(companyId)
+    getCompanyCompetencyMap(companyId),
+    getB2BPackagesByCompany(companyId) // <-- BUSCA OS PACOTES DO GESTOR
   ]);
+
+  const packages = packagesData?.packages || [];
 
   // 2. CÁLCULOS DE PERFORMANCE
   const totalStudents = participationData.length;
@@ -66,6 +70,11 @@ export default async function ManagerDashboardPage() {
             companyName={(manager as any).companyName}
           />
         </div>
+      </div>
+
+      {/* --- DISTRIBUIÇÃO B2B (NOVO) --- */}
+      <div className="p-2">
+        <B2BDistributionCard packages={packages} />
       </div>
 
       {/* --- ÁREA DE CAPTURA (TUDO DAQUI PARA BAIXO VAI PARA O PDF) --- */}
