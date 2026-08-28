@@ -13,6 +13,7 @@ import { query } from "./database"
 import { ListUsersCommand } from "@aws-sdk/client-cognito-identity-provider"
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto"
+import { ResendConfirmationCodeCommand } from "@aws-sdk/client-cognito-identity-provider";
 
 const client = new CognitoIdentityProviderClient({
   region: process.env.AWS_REGION || "us-east-1",
@@ -726,5 +727,22 @@ export async function getB2BPackagesByCompany(empresaId: string | number) {
   } catch (error) {
     console.error("[GET_B2B_PACKAGES_BY_COMPANY_ERROR]", error);
     return { success: false, packages: [] };
+  }
+}
+
+export async function resendConfirmationCodeAction(email: string) {
+  try {
+    const command = new ResendConfirmationCodeCommand({
+      ClientId: CLIENT_ID,
+      Username: email,
+      SecretHash: calculateSecretHash(email), // Remove se não usar Client Secret
+    });
+
+    await client.send(command);
+    
+    return { success: true };
+  } catch (error: any) {
+    console.error("[RESEND_CODE_ERROR]", error.message);
+    return { success: false, error: error.message };
   }
 }

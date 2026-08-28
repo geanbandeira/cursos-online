@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 import { ArrowLeft, CheckCircle, Mail } from "lucide-react"
-import { confirmSignUpAction } from "@/lib/auth-actions"
+import { confirmSignUpAction, resendConfirmationCodeAction } from "@/lib/auth-actions" // Atualizado aqui
 import { useRouter, useSearchParams } from "next/navigation"
 
 export default function ConfirmAccountPage() {
@@ -17,6 +17,11 @@ export default function ConfirmAccountPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  
+  // Novos estados para o reenvio do código
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState("")
+  
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
@@ -30,6 +35,7 @@ export default function ConfirmAccountPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setResendSuccess("") // Limpa mensagem de reenvio ao tentar confirmar
 
     if (!code || code.length !== 6) {
       setError("Digite o código de 6 dígitos")
@@ -50,6 +56,28 @@ export default function ConfirmAccountPage() {
       setError(err.message || "Erro ao confirmar conta")
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Função para lidar com o reenvio do código
+  const handleResendCode = async () => {
+    if (!email) return
+    setResendLoading(true)
+    setError("")
+    setResendSuccess("")
+    
+    try {
+      const result = await resendConfirmationCodeAction(email)
+      
+      if (result.success) {
+        setResendSuccess("✅ Código reenviado com sucesso! Verifique sua caixa de entrada e spam.")
+      } else {
+        setError(result.error || "Erro ao reenviar o código.")
+      }
+    } catch (err: any) {
+      setError("Erro de conexão ao reenviar código.")
+    } finally {
+      setResendLoading(false)
     }
   }
 
@@ -113,9 +141,16 @@ export default function ConfirmAccountPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              
+              {/* Alertas de Erro e Sucesso */}
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              {resendSuccess && (
+                <Alert className="bg-green-50 text-green-700 border-green-200">
+                  <AlertDescription>{resendSuccess}</AlertDescription>
                 </Alert>
               )}
 
@@ -145,10 +180,15 @@ export default function ConfirmAccountPage() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Não recebeu o código?{" "}
-                <button className="text-[#00324F] hover:text-[#004066] font-medium cursor-pointer">
-                  Reenviar código
+              <p className="text-sm text-gray-600 flex flex-col sm:flex-row items-center justify-center gap-1">
+                <span>Não recebeu o código?</span>
+                <button 
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={resendLoading}
+                  className="text-[#00324F] hover:text-[#004066] font-medium cursor-pointer disabled:opacity-50"
+                >
+                  {resendLoading ? "Reenviando..." : "Reenviar código"}
                 </button>
               </p>
             </div>
