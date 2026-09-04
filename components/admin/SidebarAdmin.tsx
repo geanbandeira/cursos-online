@@ -35,6 +35,7 @@ export function SidebarAdmin() {
     { name: "Registrar Empresa", href: "/admin/users/registrar-empresa", icon: Building2 },
     { name: "Gestão de Empresas", href: "/admin/users/empresa", icon: Factory },
     { name: "Central Certificados", href: "/admin/users/certificates", icon: Award },
+    { name: "Estatísticas do Site", href: "/admin/users/estatisticas", icon: Factory }
   ];
 
   return (
@@ -46,6 +47,9 @@ export function SidebarAdmin() {
           </div>
           <span className="font-black text-sm uppercase tracking-tighter">Admin Master</span>
         </div>
+        <Link href="/admin/estatisticas" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+  <span>📊 Estatísticas do Site</span>
+</Link>
         
         <nav className="space-y-2">
           {menuItems.map((item) => {
