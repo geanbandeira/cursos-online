@@ -54,7 +54,6 @@ async function getVercelStats(projectId: string, period: string, isTeamProject: 
   try {
     let res = await queryApi(isTeamProject);
 
-    // Se falhar 404, inverte o escopo automaticamente
     if (!res.ok && res.status === 404) {
       const fallback = await queryApi(!isTeamProject);
       if (fallback.ok) res = fallback;
@@ -100,7 +99,6 @@ export default async function EstatisticasPage(props: PageProps) {
     : props.searchParams;
 
   const currentPeriod = searchParams?.period || "30d";
-
   const [statsCursos, statsAcademy, hostgatorData] = await Promise.all([
     getVercelStats("prj_vF69Ypt95xtLU4GAXoHoiclQCNhA", currentPeriod, true),  // Team
     getVercelStats("prj_0s9XcvnoyOyzyXS3aPS3XfJb5E4K", currentPeriod, false), // Conta pessoal (Hobby)
