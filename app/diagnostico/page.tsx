@@ -120,10 +120,10 @@ export default function DiagnosticoPage() {
   const router = useRouter();
   const [passoAtual, setPassoAtual] = useState(-1);
   const [respostas, setRespostas] = useState<Record<number, string>>({});
-  const [lead, setLead] = useState({ nome: "", email: "" });
 
   const perguntaAtual = perguntas[passoAtual];
   const progresso = passoAtual >= 0 ? ((passoAtual + 1) / perguntas.length) * 100 : 0;
+  const logoUrl = "https://masterproject.com.br/assets/img/logo-principal-site2.png";
 
   const selecionarOpcao = (opcao: string) => {
     setRespostas({ ...respostas, [perguntaAtual.id]: opcao });
@@ -139,22 +139,29 @@ export default function DiagnosticoPage() {
     }
   };
 
-  const finalizar = () => {
-    localStorage.setItem("respostasDiagnostico", JSON.stringify(respostas));
-    localStorage.setItem("leadDiagnostico", JSON.stringify(lead));
-    router.push("/resultado");
-  };
-
   // 1. TELA INICIAL
   if (passoAtual === -1) {
     return (
-      <div className="min-h-screen flex">
-        <div className="hidden lg:flex w-1/2 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2340&auto=format&fit=crop')" }}></div>
+      <div className="min-h-screen flex relative">
+        {/* Logo Desktop */}
+        <div className="absolute top-8 left-8 z-20 hidden lg:block">
+          <img src={logoUrl} alt="Master Project" className="h-16 object-contain" />
+        </div>
+
+        <div className="hidden lg:flex w-1/2 bg-cover bg-center relative" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2340&auto=format&fit=crop')" }}>
+          <div className="w-full h-full bg-black/40"></div>
+        </div>
+        
         <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-12 bg-white">
           <div className="max-w-md w-full">
+            {/* Logo Mobile */}
+            <div className="lg:hidden mb-8 bg-gray-900 p-4 rounded-xl inline-block">
+              <img src={logoUrl} alt="Master Project" className="h-16 object-contain" />
+            </div>
+
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Descubra o próximo passo da sua empresa</h1>
             <p className="text-lg text-gray-600 mb-8">Faça um diagnóstico rápido de 2 minutos e receba um plano de ação estratégico para projetos, processos e dados.</p>
-            <button onClick={() => setPassoAtual(0)} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-lg transition-all">
+            <button onClick={() => setPassoAtual(0)} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-lg transition-all shadow-lg">
               Começar Diagnóstico Gratuito
             </button>
           </div>
@@ -163,51 +170,28 @@ export default function DiagnosticoPage() {
     );
   }
 
-  // 2. CAPTURA DE LEAD (ÚLTIMO PASSO)
-  if (passoAtual === perguntas.length) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl">
-          <h2 className="text-2xl font-bold mb-2">Diagnóstico concluído!</h2>
-          <p className="text-gray-600 mb-6">Para onde devemos enviar seu plano de ação estratégico?</p>
-          <input 
-            type="text" 
-            placeholder="Seu nome" 
-            value={lead.nome} 
-            onChange={(e) => setLead({ ...lead, nome: e.target.value })} 
-            className="w-full mb-4 p-4 border rounded-xl" 
-          />
-          <input 
-            type="email" 
-            placeholder="Seu e-mail corporativo" 
-            value={lead.email} 
-            onChange={(e) => setLead({ ...lead, email: e.target.value })} 
-            className="w-full mb-6 p-4 border rounded-xl" 
-          />
-          <button 
-            onClick={finalizar} 
-            disabled={!lead.nome || !lead.email} 
-            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl disabled:opacity-50"
-          >
-            Ver Meu Resultado Agora
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // 3. TELA DAS PERGUNTAS
+  // 2. TELA DAS PERGUNTAS
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex relative">
+      {/* Logo Desktop */}
+      <div className="absolute top-8 left-8 z-20 hidden lg:block">
+        <img src={logoUrl} alt="Master Project" className="h-16 object-contain" />
+      </div>
+
       <div 
-        className="hidden lg:flex w-1/2 bg-cover bg-center transition-all duration-700" 
+        className="hidden lg:flex w-1/2 bg-cover bg-center transition-all duration-700 relative" 
         style={{ backgroundImage: `url('${perguntaAtual.imagem}')` }}
       >
-        <div className="w-full h-full bg-black/30"></div>
+        <div className="w-full h-full bg-black/40 transition-colors"></div>
       </div>
 
       <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-16 bg-gray-50">
         <div className="max-w-xl w-full mx-auto">
+          {/* Logo Mobile */}
+          <div className="lg:hidden mb-8 bg-gray-900 p-3 rounded-xl inline-block">
+            <img src={logoUrl} alt="Master Project" className="h-16 object-contain" />
+          </div>
+
           <div className="mb-8">
             <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
               <div className="bg-blue-600 h-1.5 rounded-full transition-all duration-500" style={{ width: `${progresso}%` }}></div>
@@ -236,7 +220,7 @@ export default function DiagnosticoPage() {
             })}
           </div>
 
-          <button onClick={() => setPassoAtual(passoAtual - 1)} className="mt-8 text-gray-500 hover:text-gray-800 font-medium">
+          <button onClick={() => setPassoAtual(passoAtual - 1)} className="mt-8 text-gray-500 hover:text-gray-800 font-medium transition-colors">
             ← Voltar
           </button>
         </div>
