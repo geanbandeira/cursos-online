@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { MobileNav } from "@/components/MobileNav"
+import CheckoutModal from '@/components/CheckoutModal'; // <-- Importe aqui
 import { GraduationCap } from "lucide-react"
 import {
   ChevronLeft,
@@ -195,12 +196,12 @@ export default function CoursePage() {
     }
   }, [])
 
-useEffect(() => {
-  // Se a lista de aulas já carregou, tem pelo menos uma aula e nenhuma foi selecionada ainda
-  if (lessons && lessons.length > 0 && !selectedLesson) {
-    setSelectedLesson(lessons[0]);
-  }
-}, [lessons, selectedLesson, setSelectedLesson]);
+  useEffect(() => {
+    // Se a lista de aulas já carregou, tem pelo menos uma aula e nenhuma foi selecionada ainda
+    if (lessons && lessons.length > 0 && !selectedLesson) {
+      setSelectedLesson(lessons[0]);
+    }
+  }, [lessons, selectedLesson, setSelectedLesson]);
 
   const handleLessonSelect = (lesson: Lesson) => {
     if (lesson.is_preview || isEnrolled || lesson.lesson_order <= 3) {
@@ -235,7 +236,6 @@ useEffect(() => {
   const PurchaseModal = () => {
     if (!showPurchaseModal || !course) return null;
 
-    // DESIGN 2026 para o curso grátis
     if (isFreeCourse) {
       return (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xl flex items-center justify-center z-[100] p-4">
@@ -282,6 +282,7 @@ useEffect(() => {
     const creditCardUrl = "https://pag.ae/7_P9FAYHQ"
 
     return (
+
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg max-w-md w-full p-6">
           <div className="text-center mb-6">
@@ -301,6 +302,15 @@ useEffect(() => {
               </div>
             </div>
           </div>
+          <CheckoutModal
+            courseTitle={course.title}
+            price={course.price}
+            originalPrice={course.original_price}
+            linkPix={course.pix_link}
+            linkCartao={course.credit_card_link}
+            linkBoleto={course.boleto_link}
+            onClose={() => setShowPurchaseModal(false)}
+          />
 
           {!user ? (
             <div className="text-center">
@@ -398,7 +408,9 @@ useEffect(() => {
           </Button>
         </div>
       </div>
-    )
+
+
+    );
   }
 
   const playNextLesson = () => {
@@ -549,7 +561,7 @@ useEffect(() => {
     // Sistema de retry melhorado
     let retryCount = 0
     const maxRetries = 10
-    let retryInterval : any
+    let retryInterval: any
 
     const tryInitialize = () => {
       retryCount++
@@ -678,7 +690,6 @@ useEffect(() => {
                 />
               </Link>
 
-              {/* Info do Curso - Visível apenas em telas maiores para não "quebrar" */}
               <div className="hidden lg:block border-l border-gray-200 pl-8">
                 <h1 className="text-lg font-black text-[#00324F] uppercase tracking-tight line-clamp-1">
                   {course.title}
