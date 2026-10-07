@@ -10,27 +10,21 @@ export async function POST(req: Request) {
     const status = charge.status
 
     if (status === "PAID" || status === "AUTHORIZED") {
-      const courseId = charge.reference_id || charge.metadata?.course_id
-      const customerEmail = charge.customer?.email || charge.payer?.email
+      const referenceId = charge.reference_id || "";
+      
+      // Extrai os IDs baseados na string "course_X_user_Y"
+      const partes = referenceId.split('_');
+      const courseId = partes[1];
+      const userId = partes[3];
 
-      if (courseId && customerEmail) {
-        const userResult = await query(
-          'SELECT id FROM users WHERE email = ? OR email = ?', 
-          [customerEmail, customerEmail.toLowerCase()]
+      if (courseId && userId) {
+        await query(
+          'INSERT IGNORE INTO enrollments (user_id, course_id) VALUES (?, ?)',
+          [userId, courseId]
         )
-
-        const dbUser = Array.isArray(userResult) ? userResult[0] : userResult?.rows?.[0]
-
-        if (dbUser) {
-          // Removido o created_at e adicionado INSERT IGNORE
-          await query(
-            'INSERT IGNORE INTO enrollments (user_id, course_id) VALUES (?, ?)',
-            [dbUser.id, courseId]
-          )
-          console.log(`[Webhook] Sucesso! Usuário ${dbUser.id} matriculado no curso ${courseId}`)
-        } else {
-          console.warn(`[Webhook] Usuário com email ${customerEmail} não encontrado.`)
-        }
+        console.log(`[Webhook] Sucesso! Usuário ${userId} matriculado no curso ${courseId}`)
+      } else {
+        console.warn(`[Webhook] IDs não encontrados no reference_id: ${referenceId}`)
       }
     }
 

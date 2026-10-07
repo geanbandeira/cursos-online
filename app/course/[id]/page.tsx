@@ -211,7 +211,32 @@ export default function CoursePage() {
     }
   }
 
+  const handleCheckout = async () => {
+    if (!course || !currentUserId) {
+      alert("Erro: Faça login para comprar o curso.");
+      return;
+    }
 
+    try {
+      const res = await fetch('/api/checkout/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: course.id,
+          title: course.title,
+          price: course.price,
+          userId: currentUserId // Envia o ID do usuário logado
+        })
+      });
+
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      }
+    } catch (error) {
+      console.error("Erro ao gerar checkout:", error);
+    }
+  };
 
   // Defina isso logo no início do componente CoursePage (perto de isFreeCourse)
   const isRestricted = courseId === "9" || courseId === "10";
@@ -344,39 +369,20 @@ export default function CoursePage() {
                 </a>
               )}
 
-              <div className="space-y-2">
-                {course.pix_link ? (
-                  <a href={course.pix_link} target="_blank" rel="noopener noreferrer" className="w-full cursor-pointer">
-                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center">
-                      <Smartphone className="w-4 h-4 mr-2" />
-                      PIX
-                    </Button>
-                  </a>
-                ) : (
-                  <Button
-                    className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center"
-                    onClick={() => {
-                      navigator.clipboard.writeText("pagamentos@masterproject.com.br")
-                      alert("Chave PIX copiada! Use: pagamentos@masterproject.com.br")
-                    }}
-                  >
-                    <Smartphone className="w-4 h-4 mr-2" />
-                    PIX
-                  </Button>
-                )}
-                {!course.pix_link && (
-                  <>
-                    <p className="text-xs text-gray-600 text-center">Chave: pagamentos@masterproject.com.br</p>
-                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
-                      <Button
-                        variant="outline"
-                        className="w-full text-green-600 border-green-600 hover:bg-green-50 bg-transparent"
-                      >
-                        Enviar Comprovante via WhatsApp
-                      </Button>
-                    </a>
-                  </>
-                )}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 text-center mb-4">Finalize sua compra:</h4>
+
+                <Button
+                  onClick={handleCheckout}
+                  className="w-full bg-[#00324F] hover:bg-[#004A75] text-white flex items-center justify-center py-6 text-base"
+                >
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  Pagar com PagBank
+                </Button>
+
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  Aceita PIX, Cartão de Crédito e Boleto. Liberação automática.
+                </p>
               </div>
 
               {course.boleto_link ? (
