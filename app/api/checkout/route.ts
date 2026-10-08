@@ -4,7 +4,7 @@ export async function POST(request: Request) {
   try {
     const { userId, courseId, customer, item } = await request.json();
 
-    const response = await fetch('https://sandbox.api.pagseguro.com/orders', {
+    const response = await fetch('https://api.pagseguro.com/orders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         // A referência é crucial para identificar o pagamento no Webhook
-        reference_id: `${userId}_${courseId}_${Date.now()}`,
+        reference_id: `$course_${courseId}_user_${userId}_${Date.now()}`,
         customer: {
           name: customer.name,
           email: customer.email,
