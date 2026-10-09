@@ -120,32 +120,38 @@ export default function DiagnosticoPage() {
   const router = useRouter();
   const [passoAtual, setPassoAtual] = useState(-1);
   const [respostas, setRespostas] = useState<Record<number, string>>({});
+  const [lead, setLead] = useState({ nome: "", empresa: "" });
 
-  const perguntaAtual = perguntas[passoAtual];
-  const progresso = passoAtual >= 0 ? ((passoAtual + 1) / perguntas.length) * 100 : 0;
+  const progresso = passoAtual >= 0 && passoAtual < perguntas.length 
+    ? ((passoAtual + 1) / perguntas.length) * 100 
+    : 100;
+    
   const logoUrl = "https://masterproject.com.br/assets/img/logo-principal-site2.png";
 
   const selecionarOpcao = (opcao: string) => {
+    const perguntaAtual = perguntas[passoAtual];
     setRespostas({ ...respostas, [perguntaAtual.id]: opcao });
     setTimeout(proximoPasso, 400); 
   };
 
   const proximoPasso = () => {
-    if (passoAtual < perguntas.length - 1) {
+    if (passoAtual < perguntas.length) {
       setPassoAtual(passoAtual + 1);
-    } else {
-      localStorage.setItem("respostasDiagnostico", JSON.stringify(respostas));
-      router.push("/resultado");
     }
+  };
+
+  const finalizar = () => {
+    localStorage.setItem("respostasDiagnostico", JSON.stringify(respostas));
+    localStorage.setItem("leadDiagnostico", JSON.stringify(lead));
+    router.push("/resultado");
   };
 
   // 1. TELA INICIAL
   if (passoAtual === -1) {
     return (
       <div className="min-h-screen flex relative">
-        {/* Logo Desktop */}
         <div className="absolute top-8 left-8 z-20 hidden lg:block">
-          <img src={logoUrl} alt="Master Project" className="h-16 object-contain" />
+          <img src={logoUrl} alt="Master Project" className="h-22 object-contain" />
         </div>
 
         <div className="hidden lg:flex w-1/2 bg-cover bg-center relative" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2340&auto=format&fit=crop')" }}>
@@ -154,9 +160,8 @@ export default function DiagnosticoPage() {
         
         <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-12 bg-white">
           <div className="max-w-md w-full">
-            {/* Logo Mobile */}
             <div className="lg:hidden mb-8 bg-gray-900 p-4 rounded-xl inline-block">
-              <img src={logoUrl} alt="Master Project" className="h-16 object-contain" />
+              <img src={logoUrl} alt="Master Project" className="h-22 object-contain" />
             </div>
 
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Descubra o próximo passo da sua empresa</h1>
@@ -170,12 +175,69 @@ export default function DiagnosticoPage() {
     );
   }
 
-  // 2. TELA DAS PERGUNTAS
+  // 2. CAPTURA DE DADOS (ÚLTIMO PASSO)
+  if (passoAtual === perguntas.length) {
+    return (
+      <div className="min-h-screen flex relative">
+        <div className="absolute top-8 left-8 z-20 hidden lg:block">
+          <img src={logoUrl} alt="Master Project" className="h-22 object-contain" />
+        </div>
+
+        <div className="hidden lg:flex w-1/2 bg-cover bg-center relative" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2340&auto=format&fit=crop')" }}>
+          <div className="w-full h-full bg-black/50"></div>
+        </div>
+        
+        <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-16 bg-gray-50">
+          <div className="max-w-xl w-full mx-auto">
+            <div className="lg:hidden mb-8 bg-gray-900 p-3 rounded-xl inline-block">
+              <img src={logoUrl} alt="Master Project" className="h-22 object-contain" />
+            </div>
+            
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Diagnóstico concluído!</h2>
+            <p className="text-gray-600 mb-8">Para personalizar seu resultado, como podemos te chamar?</p>
+            
+            <div className="space-y-4 mb-8">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Seu Nome</label>
+                <input 
+                  type="text" 
+                  value={lead.nome} 
+                  onChange={(e) => setLead({ ...lead, nome: e.target.value })} 
+                  className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
+                  placeholder="Ex: João Silva"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Empresa</label>
+                <input 
+                  type="text" 
+                  value={lead.empresa} 
+                  onChange={(e) => setLead({ ...lead, empresa: e.target.value })} 
+                  className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
+                  placeholder="Ex: Minha Empresa LTDA"
+                />
+              </div>
+            </div>
+
+            <button 
+              onClick={finalizar} 
+              disabled={!lead.nome || !lead.empresa} 
+              className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl disabled:opacity-50 transition-colors text-lg"
+            >
+              Ver Meu Resultado e Plano de Ação
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. TELA DAS PERGUNTAS
+  const perguntaAtual = perguntas[passoAtual];
   return (
     <div className="min-h-screen flex relative">
-      {/* Logo Desktop */}
       <div className="absolute top-8 left-8 z-20 hidden lg:block">
-        <img src={logoUrl} alt="Master Project" className="h-16 object-contain" />
+        <img src={logoUrl} alt="Master Project" className="h-22 object-contain" />
       </div>
 
       <div 
@@ -187,9 +249,8 @@ export default function DiagnosticoPage() {
 
       <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-16 bg-gray-50">
         <div className="max-w-xl w-full mx-auto">
-          {/* Logo Mobile */}
           <div className="lg:hidden mb-8 bg-gray-900 p-3 rounded-xl inline-block">
-            <img src={logoUrl} alt="Master Project" className="h-16 object-contain" />
+            <img src={logoUrl} alt="Master Project" className="h-22 object-contain" />
           </div>
 
           <div className="mb-8">
