@@ -57,7 +57,7 @@ export default function ResultadoPage() {
           { nome: "Ao Vivo: Excel Pro", url: "https://masterproject.com.br/curso-aovivo/excelpro" },
           { nome: "Online: PMI Iniciação ao Planejamento", url: "https://masterproject.com.br/curso/gerenciamento-projetos-pmi-iniciacao", aulasGratis: true },
           { nome: "Online: PMI Execução e Controle", url: "https://masterproject.com.br/curso/gerenciamento-projetos-pmi-execucao", aulasGratis: true },
-          { nome: "Online: Jira Software & OKR", url: "https://masterproject.com.br/curso/jira-soft", aulasGratis: true }
+          { nome: "Online: Jira Software & OKR", url: "https://masterproject.com.br/curso/jira-software", aulasGratis: true }
         ]
       });
     } else {
