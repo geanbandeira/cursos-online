@@ -16,7 +16,11 @@ export async function POST(req: Request) {
       notification_urls: [
         "https://cursos-online.masterproject.com.br/api/webhook/pagbank"
       ],
-      redirect_url: "https://cursos-online.masterproject.com.br/my-courses"
+      // CORREÇÃO: redirect_url tem que ficar dentro do objeto "checkout"
+      checkout: {
+        expires_in: 1440, // 24 horas para o link expirar
+        redirect_url: "https://cursos-online.masterproject.com.br/my-courses"
+      }
     };
 
     const response = await fetch('https://api.pagseguro.com/orders', {

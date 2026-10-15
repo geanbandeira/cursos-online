@@ -48,9 +48,9 @@ export default function CheckoutModal({
             Escolha a forma de pagamento
           </p>
 
-          {/* Cartão de Crédito */}
+          {/* Cartão de Crédito - Sem target blank */}
           {linkCartao && (
-            <a href={linkCartao} target="_blank" rel="noopener noreferrer" className="block w-full">
+            <a href={linkCartao} className="block w-full">
               <Button className="w-full bg-[#00324F] hover:bg-[#004A75] text-white font-bold h-12 rounded-xl flex items-center justify-center shadow-md">
                 <CreditCard className="w-4 h-4 mr-2" />
                 Cartão de Crédito
@@ -58,9 +58,9 @@ export default function CheckoutModal({
             </a>
           )}
 
-          {/* PIX */}
+          {/* PIX - Sem target blank */}
           {linkPix && (
-            <a href={linkPix} target="_blank" rel="noopener noreferrer" className="block w-full">
+            <a href={linkPix} className="block w-full">
               <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 rounded-xl flex items-center justify-center shadow-md">
                 <Smartphone className="w-4 h-4 mr-2" />
                 PIX
@@ -68,9 +68,9 @@ export default function CheckoutModal({
             </a>
           )}
 
-          {/* Boleto */}
+          {/* Boleto - Sem target blank */}
           {linkBoleto && (
-            <a href={linkBoleto} target="_blank" rel="noopener noreferrer" className="block w-full">
+            <a href={linkBoleto} className="block w-full">
               <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 rounded-xl flex items-center justify-center shadow-md">
                 <FileText className="w-4 h-4 mr-2" />
                 Boleto Bancário
