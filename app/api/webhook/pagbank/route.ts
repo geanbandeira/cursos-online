@@ -6,13 +6,13 @@ export async function POST(req: Request) {
     const data = await req.json()
     console.log("[Webhook PagBank] Dados recebidos:", JSON.stringify(data))
 
-    const charge = data.charges?.[0] || data
-    const status = charge.status
+    // Pega o status do primeiro charge (cobrança), mas o reference_id vem da raiz (data)
+    const charge = data.charges?.[0] || {};
+    const status = charge.status;
+    const referenceId = data.reference_id || ""; // Correção: Pegando da raiz
 
     if (status === "PAID" || status === "AUTHORIZED") {
-      const referenceId = charge.reference_id || "";
       
-      // Extrai os IDs baseados na string "course_X_user_Y"
       const partes = referenceId.split('_');
       const courseId = partes[1];
       const userId = partes[3];

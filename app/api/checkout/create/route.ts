@@ -19,7 +19,6 @@ export async function POST(req: Request) {
       redirect_url: "https://cursos-online.masterproject.com.br/my-courses"
     };
 
-    // Mude para api.pagseguro.com em produção
     const response = await fetch('https://api.pagseguro.com/orders', {
       method: 'POST',
       headers: {
@@ -30,13 +29,17 @@ export async function POST(req: Request) {
     });
 
     const data = await response.json();
-    const checkoutUrl = data.links?.find((link: any) => link.rel === 'PAY')?.href;
 
-    
+    if (!response.ok) {
+      console.error("[PagBank Erro API]:", data);
+      return NextResponse.json({ error: "Erro na resposta do PagBank", details: data }, { status: response.status });
+    }
+
+    const checkoutUrl = data.links?.find((link: any) => link.rel === 'PAY')?.href;
 
     return NextResponse.json({ checkoutUrl });
   } catch (error) {
-    console.error(error);
+    console.error("[Checkout Erro]:", error);
     return NextResponse.json({ error: "Erro ao gerar checkout" }, { status: 500 });
   }
 }
