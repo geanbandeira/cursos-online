@@ -325,6 +325,7 @@ export default function CoursePage() {
         courseTitle={course.title}
         price={course.price}
         originalPrice={course.original_price}
+        linkCartao={course.credit_card_link}
         onClose={() => setShowPurchaseModal(false)}
       />
     );

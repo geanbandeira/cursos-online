@@ -2,14 +2,15 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart, CreditCard, Smartphone, FileText } from "lucide-react"
+import { ShoppingCart, CreditCard } from "lucide-react"
 
 interface CheckoutModalProps {
-  courseId: string | number 
-  userId: string | number   
+  courseId: string | number
+  userId: string | number
   courseTitle: string
   price: number | string
   originalPrice?: number | string
+  linkCartao?: string // <-- Adicionado de volta
   onClose: () => void
 }
 
@@ -19,12 +20,19 @@ export default function CheckoutModal({
   courseTitle,
   price,
   originalPrice,
+  linkCartao, // <-- Adicionado de volta
   onClose,
 }: CheckoutModalProps) {
   const [loading, setLoading] = useState(false)
 
-  // FUNÇÃO QUE REALMENTE CHAMA A SUA API DO PAGBANK
   const handleCheckout = async () => {
+    // 1. SE TIVER LINK MANUAL NO BANCO (FALLBACK), VAI DIRETO PARA ELE E IGNORA A API
+    if (linkCartao && linkCartao.trim() !== "") {
+      window.location.href = linkCartao;
+      return;
+    }
+
+    // 2. SE NÃO TIVER LINK, TENTA PELA API...
     setLoading(true)
     try {
       const res = await fetch('/api/checkout/create', {
@@ -41,10 +49,10 @@ export default function CheckoutModal({
       const data = await res.json()
 
       if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl // Redireciona na mesma aba
+        window.location.href = data.checkoutUrl
       } else {
         alert("Erro ao gerar link de pagamento.")
-        console.log(data)
+        console.log("Erro da API:", data)
       }
     } catch (error) {
       console.error(error)
@@ -79,7 +87,6 @@ export default function CheckoutModal({
             Finalizar Compra
           </p>
 
-          {/* Botão que chama a API gerando Cartão, Pix ou Boleto no PagBank */}
           <Button 
             onClick={handleCheckout} 
             disabled={loading}
@@ -88,7 +95,6 @@ export default function CheckoutModal({
             <CreditCard className="w-4 h-4 mr-2" />
             {loading ? "Processando..." : "Ir para Pagamento (PagBank)"}
           </Button>
-
         </div>
 
         <Button
