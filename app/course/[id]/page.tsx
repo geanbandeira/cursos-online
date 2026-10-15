@@ -258,9 +258,10 @@ export default function CoursePage() {
   }
 
 
-  const PurchaseModal = () => {
+const PurchaseModal = () => {
     if (!showPurchaseModal || !course) return null;
 
+    // 1. Lógica para Curso Gratuito (MANTIDA IGUAL)
     if (isFreeCourse) {
       return (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xl flex items-center justify-center z-[100] p-4">
@@ -300,122 +301,35 @@ export default function CoursePage() {
       );
     }
 
-
-
-    const pixMessage = `Olá! Segue o comprovante do pagamento PIX do curso ${course.title}.`
-    const whatsappUrl = `https://wa.me/5511995702066?text=${encodeURIComponent(pixMessage)}`
-    const creditCardUrl = "https://pag.ae/7_P9FAYHQ"
+    // 2. Se o usuário NÃO estiver logado, pede para fazer login
+    if (!user || !currentUserId) {
+      return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Restrito</h2>
+            <p className="text-gray-600 mb-6">Você precisa estar logado para comprar o curso.</p>
+            <Link href="/auth/login">
+              <Button className="w-full bg-[#00324F] hover:bg-[#004A75] text-white h-12 rounded-xl mb-3">
+                Fazer Login
+              </Button>
+            </Link>
+            <Button variant="ghost" className="w-full text-gray-500 font-bold" onClick={() => setShowPurchaseModal(false)}>
+              Fechar
+            </Button>
+          </div>
+        </div>
+      )
+    }
 
     return (
-
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg max-w-md w-full p-6">
-          <div className="text-center mb-6">
-            <ShoppingCart className="w-12 h-12 text-[#00324F] mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Adquira o Curso Completo</h2>
-            <p className="text-gray-600">Para acessar todas as aulas, você precisa adquirir o curso.</p>
-          </div>
-
-          <div className="mb-6">
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <h3 className="font-bold text-lg text-gray-900">{course.title}</h3>
-              <div className="flex items-center justify-center space-x-2 mt-2">
-                <span className="text-2xl font-bold text-[#00324F]">R$ {course.price}</span>
-                {course.original_price > course.price && (
-                  <span className="text-lg text-gray-500 line-through">R$ {course.original_price}</span>
-                )}
-              </div>
-            </div>
-          </div>
-          <CheckoutModal
-            courseTitle={course.title}
-            price={course.price}
-            originalPrice={course.original_price}
-            linkPix={course.pix_link}
-            linkCartao={course.credit_card_link}
-            linkBoleto={course.boleto_link}
-            onClose={() => setShowPurchaseModal(false)}
-          />
-
-          {!user ? (
-            <div className="text-center">
-              <p className="text-gray-600 mb-4">Você precisa estar logado para comprar o curso.</p>
-              <Link href="/auth/login">
-                <Button className="w-full bg-[#00324F] hover:bg-[#004A75] text-white">Fazer Login</Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <h4 className="font-semibold text-gray-900 text-center mb-4">Escolha a forma de pagamento:</h4>
-
-              {course.credit_card_link ? (
-                <a
-                  href={course.credit_card_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full cursor-pointer"
-                >
-                  <Button className="w-full bg-[#00324F] hover:bg-[#004A75] text-white flex items-center justify-center">
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Cartão de Crédito
-                  </Button>
-                </a>
-              ) : (
-                <a href={creditCardUrl} target="_blank" rel="noopener noreferrer" className="w-full cursor-pointer">
-                  <Button className="w-full bg-[#00324F] hover:bg-[#004A75] text-white flex items-center justify-center">
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Cartão de Crédito
-                  </Button>
-                </a>
-              )}
-
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 text-center mb-4">Finalize sua compra:</h4>
-
-                <Button
-                  onClick={handleCheckout}
-                  className="w-full bg-[#00324F] hover:bg-[#004A75] text-white flex items-center justify-center py-6 text-base"
-                >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Pagar com PagBank
-                </Button>
-
-                <p className="text-xs text-gray-500 text-center mt-2">
-                  Aceita PIX, Cartão de Crédito e Boleto. Liberação automática.
-                </p>
-              </div>
-
-              {course.boleto_link ? (
-                <a
-                  href={course.boleto_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full cursor-pointer"
-                >
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Boleto Bancário
-                  </Button>
-                </a>
-              ) : (
-                <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center"
-                  onClick={() => alert("Funcionalidade de boleto será implementada em breve.")}
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Boleto Bancário
-                </Button>
-              )}
-            </div>
-          )}
-
-          <Button variant="outline" className="w-full mt-4 bg-transparent" onClick={() => setShowPurchaseModal(false)}>
-            Fechar
-          </Button>
-        </div>
-      </div>
-
-
+      <CheckoutModal
+        courseId={course.id}
+        userId={currentUserId}
+        courseTitle={course.title}
+        price={course.price}
+        originalPrice={course.original_price}
+        onClose={() => setShowPurchaseModal(false)}
+      />
     );
   }
 
