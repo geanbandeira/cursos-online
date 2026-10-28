@@ -1,27 +1,26 @@
-import { NextResponse } from "next/server";
-import { sql } from "@/lib/database";
+import { NextResponse } from 'next/server';
+import { query } from '@/lib/database';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const userId = Number(searchParams.get("userId"));
-  const courseId = Number(searchParams.get("courseId"));
+  const userId = searchParams.get('userId');
+  const courseId = searchParams.get('courseId');
 
-  if (!Number.isSafeInteger(userId) || userId <= 0 || !Number.isSafeInteger(courseId) || courseId <= 0) {
-    return NextResponse.json({ error: "Parâmetros inválidos." }, { status: 400 });
+  if (!userId || !courseId) {
+    return NextResponse.json({ error: 'Faltam parâmetros' }, { status: 400 });
   }
 
   try {
-    // A matrícula é a fonte de verdade do acesso liberado pelo webhook.
-    const enrollments = await sql`
-      SELECT id
-      FROM enrollments
-      WHERE user_id = ${userId} AND course_id = ${courseId}
-      LIMIT 1
-    `;
+    const orders: any = await query(
+      'SELECT status FROM orders WHERE userId = ? AND courseId = ? ORDER BY id DESC LIMIT 1',
+      [userId, courseId]
+    );
 
-    return NextResponse.json({ isPaid: enrollments.length > 0, enrolled: enrollments.length > 0 });
+    const isPaid = orders.length > 0 && orders[0].status === 'PAID';
+    return NextResponse.json({ isPaid });
+    
   } catch (error) {
-    console.error("[Checkout Status] Erro ao verificar matrícula:", error);
-    return NextResponse.json({ error: "Erro interno." }, { status: 500 });
+    console.error('Erro na verificação:', error);
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }
