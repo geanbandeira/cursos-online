@@ -10,7 +10,7 @@ interface CheckoutModalProps {
   courseTitle: string
   price: number | string
   originalPrice?: number | string
-  linkCartao?: string // <-- Adicionado de volta
+  linkCartao?: string
   onClose: () => void
 }
 
@@ -20,43 +20,33 @@ export default function CheckoutModal({
   courseTitle,
   price,
   originalPrice,
-  linkCartao, // <-- Adicionado de volta
   onClose,
 }: CheckoutModalProps) {
   const [loading, setLoading] = useState(false)
 
   const handleCheckout = async () => {
-    // 1. SE TIVER LINK MANUAL NO BANCO (FALLBACK), VAI DIRETO PARA ELE E IGNORA A API
-    if (linkCartao && linkCartao.trim() !== "") {
-      window.location.href = linkCartao;
-      return;
-    }
-
-    // 2. SE NÃO TIVER LINK, TENTA PELA API...
     setLoading(true)
     try {
-      const res = await fetch('/api/checkout/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          courseId,
-          userId,
-          title: courseTitle,
-          price: Number(price)
-        })
+      // Sempre cria um checkout vinculado ao curso/usuário e com notificações configuradas.
+      // O link manual salvo no curso não deve desviar deste fluxo automatizado.
+      const res = await fetch("/api/checkout/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId, userId }),
       })
 
       const data = await res.json()
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
-      } else {
-        alert("Erro ao gerar link de pagamento.")
-        console.log("Erro da API:", data)
+      if (!res.ok || !data.checkoutUrl) {
+        console.error("[Checkout] Falha ao criar pagamento:", data)
+        alert(data.error || "Não foi possível gerar o link de pagamento. Tente novamente.")
+        return
       }
+
+      window.location.assign(data.checkoutUrl)
     } catch (error) {
-      console.error(error)
-      alert("Erro de conexão.")
+      console.error("[Checkout] Erro de conexão:", error)
+      alert("Erro de conexão ao gerar o pagamento. Tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -75,25 +65,31 @@ export default function CheckoutModal({
         <div className="bg-gray-50 rounded-xl p-4 text-center mb-6">
           <h3 className="font-bold text-base text-gray-900 mb-1">{courseTitle}</h3>
           <div className="flex items-center justify-center space-x-2">
-            <span className="text-2xl font-black text-[#00324F]">R$ {price}</span>
+            <span className="text-2xl font-black text-[#00324F]">
+              {Number(price).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+            </span>
             {originalPrice && Number(originalPrice) > Number(price) && (
-              <span className="text-sm text-gray-400 line-through">R$ {originalPrice}</span>
+              <span className="text-sm text-gray-400 line-through">
+                {Number(originalPrice).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              </span>
             )}
           </div>
         </div>
 
         <div className="space-y-3">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider text-center mb-2">
-            Finalizar Compra
+            Pagamento seguro via PagBank
           </p>
-
-          <Button 
-            onClick={handleCheckout} 
+          <p className="text-sm text-gray-600 text-center">
+            Na próxima tela, escolha Pix ou cartão de crédito.
+          </p>
+          <Button
+            onClick={handleCheckout}
             disabled={loading}
             className="w-full bg-[#00324F] hover:bg-[#004A75] text-white font-bold h-12 rounded-xl flex items-center justify-center shadow-md"
           >
             <CreditCard className="w-4 h-4 mr-2" />
-            {loading ? "Processando..." : "Ir para Pagamento (PagBank)"}
+            {loading ? "Gerando checkout..." : "Continuar para o PagBank"}
           </Button>
         </div>
 
@@ -101,6 +97,7 @@ export default function CheckoutModal({
           variant="ghost"
           className="w-full mt-4 text-gray-500 font-bold hover:bg-gray-50 h-11 rounded-xl"
           onClick={onClose}
+          disabled={loading}
         >
           Fechar
         </Button>
