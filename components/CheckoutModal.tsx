@@ -10,53 +10,61 @@ interface CheckoutModalProps {
   courseTitle: string
   price: number | string
   originalPrice?: number | string
-  linkCartao?: string // <-- Adicionado de volta
+  // Mantido por compatibilidade com os componentes que ainda enviam esta propriedade.
+  // O pagamento agora sempre é criado pelo backend PagBank; links manuais não são usados.
+  linkCartao?: string
   onClose: () => void
 }
 
 export default function CheckoutModal({
   courseId,
-  userId,
   courseTitle,
   price,
   originalPrice,
-  linkCartao, // <-- Adicionado de volta
   onClose,
 }: CheckoutModalProps) {
   const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   const handleCheckout = async () => {
-    // 1. SE TIVER LINK MANUAL NO BANCO (FALLBACK), VAI DIRETO PARA ELE E IGNORA A API
-    if (linkCartao && linkCartao.trim() !== "") {
-      window.location.href = linkCartao;
-      return;
-    }
-
-    // 2. SE NÃO TIVER LINK, TENTA PELA API...
     setLoading(true)
+    setErrorMessage("")
+
     try {
-      const res = await fetch('/api/checkout/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          courseId,
-          userId,
-          title: courseTitle,
-          price: Number(price)
-        })
+      const res = await fetch("/api/checkout/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ courseId }),
       })
 
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
-      } else {
-        alert("Erro ao gerar link de pagamento.")
-        console.log("Erro da API:", data)
+      if (!res.ok) {
+        console.error("[Checkout] Falha ao criar checkout", {
+          status: res.status,
+          code: data.code,
+          requestId: data.requestId,
+          details: data.details,
+        })
+        setErrorMessage(
+          data.requestId
+            ? `${data.error || "Não foi possível iniciar o pagamento."} Código: ${data.requestId}`
+            : data.error || "Não foi possível iniciar o pagamento."
+        )
+        return
       }
+
+      if (typeof data.checkoutUrl !== "string" || !data.checkoutUrl.startsWith("https://")) {
+        console.error("[Checkout] Resposta sem URL válida", data)
+        setErrorMessage("O PagBank não retornou um link de pagamento válido. Tente novamente.")
+        return
+      }
+
+      window.location.assign(data.checkoutUrl)
     } catch (error) {
-      console.error(error)
-      alert("Erro de conexão.")
+      console.error("[Checkout] Erro de conexão", error)
+      setErrorMessage("Erro de conexão ao iniciar o pagamento. Tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -86,14 +94,23 @@ export default function CheckoutModal({
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider text-center mb-2">
             Finalizar Compra
           </p>
+          <p className="text-xs text-gray-500 text-center">
+            Pagamento seguro pelo PagBank com cartão de crédito ou Pix.
+          </p>
 
-          <Button 
-            onClick={handleCheckout} 
+          {errorMessage && (
+            <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+              {errorMessage}
+            </p>
+          )}
+
+          <Button
+            onClick={handleCheckout}
             disabled={loading}
             className="w-full bg-[#00324F] hover:bg-[#004A75] text-white font-bold h-12 rounded-xl flex items-center justify-center shadow-md"
           >
             <CreditCard className="w-4 h-4 mr-2" />
-            {loading ? "Processando..." : "Ir para Pagamento (PagBank)"}
+            {loading ? "Conectando ao PagBank..." : "Pagar com PagBank"}
           </Button>
         </div>
 
@@ -101,6 +118,7 @@ export default function CheckoutModal({
           variant="ghost"
           className="w-full mt-4 text-gray-500 font-bold hover:bg-gray-50 h-11 rounded-xl"
           onClick={onClose}
+          disabled={loading}
         >
           Fechar
         </Button>
